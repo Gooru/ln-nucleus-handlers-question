@@ -20,14 +20,14 @@ public class MessageConstants {
   public static final String MSG_HTTP_HEADERS = "http.headers";
   
   // Operation names: Also need to be updated in corresponding handlers
-  public static final String MSG_OP_RES_GET = "resource.get";
-  public static final String MSG_OP_RES_CREATE = "resource.create";
-  public static final String MSG_OP_RES_UPDATE = "resource.update";
+  public static final String MSG_OP_QUES_GET = "question.get";
+  public static final String MSG_OP_QUES_CREATE = "question.create";
+  public static final String MSG_OP_QUES_UPDATE = "question.update";
 
   // Containers for different responses
   public static final String RESP_CONTAINER_MBUS = "mb.container";
   public static final String RESP_CONTAINER_EVENT = "mb.event";
   
-  public static final String RESOURCE_ID = "resourceId";
+  public static final String QUESTION_ID = "questionId";
 
 }

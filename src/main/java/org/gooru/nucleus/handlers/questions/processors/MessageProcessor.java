@@ -38,14 +38,14 @@ class MessageProcessor implements Processor {
       prefs = ((JsonObject)message.body()).getJsonObject(MessageConstants.MSG_KEY_PREFS);
       request = ((JsonObject)message.body()).getJsonObject(MessageConstants.MSG_HTTP_BODY);
       switch (msgOp) {
-      case MessageConstants.MSG_OP_RES_CREATE:
-        result = processResourceCreate();
+      case MessageConstants.MSG_OP_QUES_CREATE:
+        result = processQuestionCreate();
         break;
-      case MessageConstants.MSG_OP_RES_GET:
-        result = processResourceGet();
+      case MessageConstants.MSG_OP_QUES_GET:
+        result = processQuestionGet();
         break;
-      case MessageConstants.MSG_OP_RES_UPDATE:
-        result = processResourceUpdate();
+      case MessageConstants.MSG_OP_QUES_UPDATE:
+        result = processQuestionUpdate();
         break;
       default:
         LOGGER.error("Invalid operation type passed in, not able to handle");
@@ -61,21 +61,21 @@ class MessageProcessor implements Processor {
     return null;
   }
 
-  private JsonObject processResourceUpdate() {
+  private JsonObject processQuestionUpdate() {
     // TODO Auto-generated method stub
-    String resourceId = message.headers().get(MessageConstants.RESOURCE_ID);
+    String resourceId = message.headers().get(MessageConstants.QUESTION_ID);
     
     return null;    
   }
 
-  private JsonObject processResourceGet() {
+  private JsonObject processQuestionGet() {
     // TODO Auto-generated method stub
-    String resourceId = message.headers().get(MessageConstants.RESOURCE_ID);
+    String resourceId = message.headers().get(MessageConstants.QUESTION_ID);
     
     return null;
   }
 
-  private JsonObject processResourceCreate() {
+  private JsonObject processQuestionCreate() {
     // TODO Auto-generated method stub
     
     return null;    
