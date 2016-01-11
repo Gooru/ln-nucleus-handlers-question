@@ -2,6 +2,8 @@ package org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc;
 
 import org.gooru.nucleus.handlers.questions.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.questions.processors.repositories.QuestionRepo;
+import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.dbhandlers.DBHandlerBuilder;
+import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.transactions.TransactionExecutor;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
 
 /**
@@ -16,19 +18,19 @@ public class AJQuestionRepo implements QuestionRepo {
 
   @Override
   public MessageResponse updateQuestion() {
-    // TODO: Provide a concrete implementation
-    throw new IllegalStateException("Not implemented yet");
+    return new TransactionExecutor().executeTransaction(new DBHandlerBuilder().buildUpdateQuestionHandler(context));
+
   }
 
   @Override
   public MessageResponse fetchQuestion() {
-    // TODO: Provide a concrete implementation
-    throw new IllegalStateException("Not implemented yet");
+    return new TransactionExecutor().executeTransaction(new DBHandlerBuilder().buildFetchQuestionHandler(context));
+
   }
 
   @Override
   public MessageResponse createQuestion() {
-    // TODO: Provide a concrete implementation
-    throw new IllegalStateException("Not implemented yet");
+    return new TransactionExecutor().executeTransaction(new DBHandlerBuilder().buildCreateQuestionHandler(context));
+
   }
 }
