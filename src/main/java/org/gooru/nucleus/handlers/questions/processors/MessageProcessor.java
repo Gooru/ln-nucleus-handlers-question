@@ -5,6 +5,9 @@ import io.vertx.core.json.JsonObject;
 import org.gooru.nucleus.handlers.questions.constants.MessageConstants;
 import org.gooru.nucleus.handlers.questions.processors.exceptions.InvalidRequestException;
 import org.gooru.nucleus.handlers.questions.processors.exceptions.InvalidUserException;
+import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
+import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,64 +24,85 @@ class MessageProcessor implements Processor {
   }
   
   @Override
-  public JsonObject process() {
-    JsonObject result;
+  public MessageResponse process() {
+    MessageResponse result = null;
     try {
-      if (message == null || !(message.body() instanceof JsonObject)) {
-        LOGGER.error("Invalid message received, either null or body of message is not JsonObject ");
-        throw new InvalidRequestException();
+      // Validate the message itself
+      ExecutionResult<MessageResponse> validateResult = validateAndInitialize();
+      if (validateResult.isCompleted()) {
+        return validateResult.result();
       }
-      
+
       final String msgOp = message.headers().get(MessageConstants.MSG_HEADER_OP);
-      userId = ((JsonObject)message.body()).getString(MessageConstants.MSG_USER_ID);
-      if (userId == null) {
-        LOGGER.error("Invalid user id passed. Not authorized.");
-        throw new InvalidUserException();
-      }
-      prefs = ((JsonObject)message.body()).getJsonObject(MessageConstants.MSG_KEY_PREFS);
-      request = ((JsonObject)message.body()).getJsonObject(MessageConstants.MSG_HTTP_BODY);
       switch (msgOp) {
-      case MessageConstants.MSG_OP_QUES_CREATE:
-        result = processQuestionCreate();
-        break;
-      case MessageConstants.MSG_OP_QUES_GET:
-        result = processQuestionGet();
-        break;
-      case MessageConstants.MSG_OP_QUES_UPDATE:
-        result = processQuestionUpdate();
-        break;
-      default:
-        LOGGER.error("Invalid operation type passed in, not able to handle");
-        throw new InvalidRequestException();
+        case MessageConstants.MSG_OP_QUESTION_CREATE:
+          result = processQuestionCreate();
+          break;
+        case MessageConstants.MSG_OP_QUESTION_GET:
+          result = processQuestionGet();
+          break;
+        case MessageConstants.MSG_OP_QUESTION_UPDATE:
+          result = processQuestionUpdate();
+          break;
+        default:
+          LOGGER.error("Invalid operation type passed in, not able to handle");
+          return MessageResponseFactory.createInvalidRequestResponse("Invalid operation");
       }
       return result;
-    } catch (InvalidRequestException e) {
-      // TODO: handle exception
-    } catch (InvalidUserException e) {
-      // TODO: handle exception
+    } catch (Throwable e) {
+      LOGGER.error("Unhandled exception in processing", e);
+      return MessageResponseFactory.createInternalErrorResponse();
     }
 
-    return null;
   }
 
-  private JsonObject processQuestionUpdate() {
+  private MessageResponse processQuestionUpdate() {
     // TODO Auto-generated method stub
     String questionId = message.headers().get(MessageConstants.QUESTION_ID);
     
     return null;    
   }
 
-  private JsonObject processQuestionGet() {
+  private MessageResponse processQuestionGet() {
     // TODO Auto-generated method stub
     String questionId = message.headers().get(MessageConstants.QUESTION_ID);
     
     return null;
   }
 
-  private JsonObject processQuestionCreate() {
+  private MessageResponse processQuestionCreate() {
     // TODO Auto-generated method stub
     
     return null;    
+  }
+
+
+  private ExecutionResult<MessageResponse> validateAndInitialize() {
+    if (message == null || !(message.body() instanceof JsonObject)) {
+      LOGGER.error("Invalid message received, either null or body of message is not JsonObject ");
+      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(), ExecutionResult.ExecutionStatus.FAILED);
+    }
+
+    userId = ((JsonObject) message.body()).getString(MessageConstants.MSG_USER_ID);
+    if (userId == null) {
+      LOGGER.error("Invalid user id passed. Not authorized.");
+      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(), ExecutionResult.ExecutionStatus.FAILED);
+    }
+    prefs = ((JsonObject) message.body()).getJsonObject(MessageConstants.MSG_KEY_PREFS);
+    request = ((JsonObject) message.body()).getJsonObject(MessageConstants.MSG_HTTP_BODY);
+
+    if (prefs == null || prefs.isEmpty()) {
+      LOGGER.error("Invalid preferences obtained, probably not authorized properly");
+      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(), ExecutionResult.ExecutionStatus.FAILED);
+    }
+
+    if (request == null) {
+      LOGGER.error("Invalid JSON payload on Message Bus");
+      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(), ExecutionResult.ExecutionStatus.FAILED);
+    }
+
+    // All is well, continue processing
+    return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
   }
 
 }
