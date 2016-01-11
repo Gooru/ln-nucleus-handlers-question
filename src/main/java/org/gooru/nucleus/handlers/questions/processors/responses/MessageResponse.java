@@ -167,7 +167,7 @@ public class MessageResponse {
     private JsonObject buildResponseContainer() {
       JsonObject result = new JsonObject();
       result.put(MessageConstants.MSG_HTTP_STATUS, this.httpStatus.getCode()).put(MessageConstants.MSG_HTTP_HEADERS, this.headers)
-        .put(MessageConstants.MSG_HTTP_BODY, buildHttpBody());
+            .put(MessageConstants.MSG_HTTP_BODY, buildHttpBody());
       return result;
     }
 

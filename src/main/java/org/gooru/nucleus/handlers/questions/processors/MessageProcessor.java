@@ -3,8 +3,7 @@ package org.gooru.nucleus.handlers.questions.processors;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import org.gooru.nucleus.handlers.questions.constants.MessageConstants;
-import org.gooru.nucleus.handlers.questions.processors.exceptions.InvalidRequestException;
-import org.gooru.nucleus.handlers.questions.processors.exceptions.InvalidUserException;
+import org.gooru.nucleus.handlers.questions.processors.repositories.RepoBuilder;
 import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
@@ -14,15 +13,15 @@ import org.slf4j.LoggerFactory;
 class MessageProcessor implements Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class);
-  private Message<Object> message;
   String userId;
   JsonObject prefs;
   JsonObject request;
-  
+  private Message<Object> message;
+
   public MessageProcessor(Message<Object> message) {
     this.message = message;
   }
-  
+
   @Override
   public MessageResponse process() {
     MessageResponse result = null;
@@ -57,25 +56,35 @@ class MessageProcessor implements Processor {
   }
 
   private MessageResponse processQuestionUpdate() {
-    // TODO Auto-generated method stub
-    String questionId = message.headers().get(MessageConstants.QUESTION_ID);
-    
-    return null;    
+    ProcessorContext context = createContext();
+    if (context.questionId() == null || context.questionId().isEmpty()) {
+      LOGGER.error("Invalid request, question id not available. Aborting");
+      return MessageResponseFactory.createInvalidRequestResponse("Invalid question id");
+    }
+    return new RepoBuilder().buildQuestionRepo(context).updateQuestion();
   }
 
   private MessageResponse processQuestionGet() {
-    // TODO Auto-generated method stub
-    String questionId = message.headers().get(MessageConstants.QUESTION_ID);
-    
-    return null;
+    ProcessorContext context = createContext();
+    if (context.questionId() == null || context.questionId().isEmpty()) {
+      LOGGER.error("Invalid request, question id not available. Aborting");
+      return MessageResponseFactory.createInvalidRequestResponse("Invalid question id");
+    }
+    return new RepoBuilder().buildQuestionRepo(context).fetchQuestion();
   }
 
   private MessageResponse processQuestionCreate() {
-    // TODO Auto-generated method stub
-    
-    return null;    
+    ProcessorContext context = createContext();
+
+    return new RepoBuilder().buildQuestionRepo(context).createQuestion();
   }
 
+
+  private ProcessorContext createContext() {
+    String questionId = message.headers().get(MessageConstants.QUESTION_ID);
+
+    return new ProcessorContext(userId, prefs, request, questionId);
+  }
 
   private ExecutionResult<MessageResponse> validateAndInitialize() {
     if (message == null || !(message.body() instanceof JsonObject)) {

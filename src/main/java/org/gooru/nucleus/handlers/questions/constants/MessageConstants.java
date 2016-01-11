@@ -1,7 +1,7 @@
 package org.gooru.nucleus.handlers.questions.constants;
 
 public class MessageConstants {
-  
+
   public static final String MSG_HEADER_OP = "mb.operation";
   public static final String MSG_HEADER_TOKEN = "session.token";
   public static final String MSG_OP_AUTH_WITH_PREFS = "auth.with.prefs";
@@ -28,7 +28,7 @@ public class MessageConstants {
   // Containers for different responses
   public static final String RESP_CONTAINER_MBUS = "mb.container";
   public static final String RESP_CONTAINER_EVENT = "mb.event";
-  
+
   public static final String QUESTION_ID = "questionId";
 
 }

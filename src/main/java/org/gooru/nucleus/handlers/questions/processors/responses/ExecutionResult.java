@@ -21,7 +21,7 @@ public class ExecutionResult<T> {
     return (this.status == ExecutionStatus.FAILED || this.status == ExecutionStatus.SUCCESSFUL);
   }
 
-  public  boolean isSuccessful() {
+  public boolean isSuccessful() {
     return (this.status == ExecutionStatus.SUCCESSFUL);
   }
 

@@ -2,14 +2,12 @@ package org.gooru.nucleus.handlers.questions.bootstrap;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import org.gooru.nucleus.handlers.questions.bootstrap.shutdown.Finalizer;
 import org.gooru.nucleus.handlers.questions.bootstrap.shutdown.Finalizers;
 import org.gooru.nucleus.handlers.questions.bootstrap.startup.Initializer;
 import org.gooru.nucleus.handlers.questions.bootstrap.startup.Initializers;
-import org.gooru.nucleus.handlers.questions.constants.MessageConstants;
 import org.gooru.nucleus.handlers.questions.constants.MessagebusEndpoints;
 import org.gooru.nucleus.handlers.questions.processors.ProcessorBuilder;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
@@ -79,7 +77,7 @@ public class QuestionVerticle extends AbstractVerticle {
       for (Initializer initializer : initializers) {
         initializer.initializeComponent(vertx, config());
       }
-    } catch(IllegalStateException ie) {
+    } catch (IllegalStateException ie) {
       LOGGER.error("Error initializing application", ie);
       Runtime.getRuntime().halt(1);
     }
@@ -87,7 +85,7 @@ public class QuestionVerticle extends AbstractVerticle {
 
   private void shutDownApplication() {
     Finalizers finalizers = new Finalizers();
-    for (Finalizer finalizer : finalizers ) {
+    for (Finalizer finalizer : finalizers) {
       finalizer.finalizeComponent();
     }
 
