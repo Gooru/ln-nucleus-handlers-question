@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  * Created by ashish on 25/12/15.
  */
 public class QuestionVerticle extends AbstractVerticle {
-  static final Logger LOGGER = LoggerFactory.getLogger(QuestionVerticle.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(QuestionVerticle.class);
 
   @Override
   public void start(Future<Void> voidFuture) throws Exception {
