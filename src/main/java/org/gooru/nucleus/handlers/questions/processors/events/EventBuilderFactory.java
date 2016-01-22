@@ -7,27 +7,27 @@ import io.vertx.core.json.JsonObject;
  */
 public class EventBuilderFactory {
 
-  private static final String EVT_ASSESSMENT_CREATE = "event.assessment.create";
-  private static final String EVT_ASSESSMENT_UPDATE = "event.assessment.update";
-  private static final String EVT_ASSESSMENT_DELETE = "event.assessment.delete";
-  private static final String EVT_ASSESSMENT_COPY = "event.assessment.copy";
+  private static final String EVT_QUESTION_CREATE = "event.question.create";
+  private static final String EVT_QUESTION_UPDATE = "event.question.update";
+  private static final String EVT_QUESTION_DELETE = "event.question.delete";
+  private static final String EVT_QUESTION_COPY = "event.question.copy";
   private static final String EVENT_NAME = "event.name";
   private static final String EVENT_BODY = "event.body";
-  private static final String ASSESSMENT_ID = "id";
+  private static final String QUESTION_ID = "id";
 
-  public static EventBuilder getDeleteAssessmentEventBuilder(String assessmentId) {
-    return () -> new JsonObject().put(EVENT_NAME, EVT_ASSESSMENT_DELETE).put(EVENT_BODY, new JsonObject().put(ASSESSMENT_ID, assessmentId));
+  public static EventBuilder getDeleteQuestionEventBuilder(String questionId) {
+    return () -> new JsonObject().put(EVENT_NAME, EVT_QUESTION_DELETE).put(EVENT_BODY, new JsonObject().put(QUESTION_ID, questionId));
   }
 
-  public static EventBuilder getCreateAssessmentEventBuilder(String assessmentId) {
-    return () -> new JsonObject().put(EVENT_NAME, EVT_ASSESSMENT_CREATE).put(EVENT_BODY, new JsonObject().put(ASSESSMENT_ID, assessmentId));
+  public static EventBuilder getCreateQuestionEventBuilder(String questionId) {
+    return () -> new JsonObject().put(EVENT_NAME, EVT_QUESTION_CREATE).put(EVENT_BODY, new JsonObject().put(QUESTION_ID, questionId));
   }
 
-  public static EventBuilder getUpdateAssessmentEventBuilder(String assessmentId) {
-    return () -> new JsonObject().put(EVENT_NAME, EVT_ASSESSMENT_UPDATE).put(EVENT_BODY, new JsonObject().put(ASSESSMENT_ID, assessmentId));
+  public static EventBuilder getUpdateQuestionEventBuilder(String questionId) {
+    return () -> new JsonObject().put(EVENT_NAME, EVT_QUESTION_UPDATE).put(EVENT_BODY, new JsonObject().put(QUESTION_ID, questionId));
   }
 
-  public static EventBuilder getCopyAssessmentEventBuilder(String assessmentId) {
-    return () -> new JsonObject().put(EVENT_NAME, EVT_ASSESSMENT_COPY).put(EVENT_BODY, new JsonObject().put(ASSESSMENT_ID, assessmentId));
+  public static EventBuilder getCopyQuestionEventBuilder(String questionId) {
+    return () -> new JsonObject().put(EVENT_NAME, EVT_QUESTION_COPY).put(EVENT_BODY, new JsonObject().put(QUESTION_ID, questionId));
   }
 }
