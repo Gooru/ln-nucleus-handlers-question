@@ -1,7 +1,9 @@
 package org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.dbhandlers;
 
+import io.vertx.core.json.JsonObject;
 import org.gooru.nucleus.handlers.questions.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.entities.AJEntityQuestion;
+import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.formatter.JsonFormatterBuilder;
 import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 class FetchQuestionHandler implements DBHandler {
   private final ProcessorContext context;
   private static final Logger LOGGER = LoggerFactory.getLogger(FetchQuestionHandler.class);
+  private AJEntityQuestion question;
 
   public FetchQuestionHandler(ProcessorContext context) {
     this.context = context;
@@ -34,25 +37,24 @@ class FetchQuestionHandler implements DBHandler {
   @Override
   public ExecutionResult<MessageResponse> validateRequest() {
 
-    LazyList<AJEntityQuestion> questions = AJEntityQuestion
-      .findBySQL(
-        AJEntityQuestion.VALIDATE_EXISTS_NON_DELETED,
-        AJEntityQuestion.QUESTION,
-        context.questionId(), false);
+    LazyList<AJEntityQuestion> questions =
+      AJEntityQuestion.findBySQL(AJEntityQuestion.FETCH_QUESTION, AJEntityQuestion.QUESTION, context.questionId(), false);
     // Question should be present in DB
     if (questions.size() < 1) {
       LOGGER.warn("Question id: {} not present in DB", context.questionId());
       return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse("question id: " + context.questionId()),
         ExecutionResult.ExecutionStatus.FAILED);
     }
+    question = questions.get(0);
     return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
 
   }
 
   @Override
   public ExecutionResult<MessageResponse> executeRequest() {
-    // TODO: Provide a concrete implementation
-    throw new IllegalStateException("Not implemented yet");
+    return new ExecutionResult<>(MessageResponseFactory.createOkayResponse(
+      new JsonObject(new JsonFormatterBuilder().buildSimpleJsonFormatter(false, AJEntityQuestion.FETCH_QUESTION_FIELDS).toJson(this.question))),
+      ExecutionResult.ExecutionStatus.SUCCESSFUL);
   }
 
   @Override
