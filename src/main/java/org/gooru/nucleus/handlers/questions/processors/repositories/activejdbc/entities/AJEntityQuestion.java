@@ -8,4 +8,10 @@ import org.javalite.activejdbc.annotations.Table;
  */
 @Table("content")
 public class AJEntityQuestion extends Model {
+
+  public static final String VALIDATE_EXISTS_NON_DELETED =
+    "select id, creator_id, publish_date from content where content_format = ?::content_format_type and id = ? and is_deleted = ?";
+
+  public static final String QUESTION = "question";
+
 }
