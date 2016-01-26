@@ -10,6 +10,8 @@ import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
+
 class MessageProcessor implements Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class);
@@ -43,6 +45,9 @@ class MessageProcessor implements Processor {
         case MessageConstants.MSG_OP_QUESTION_UPDATE:
           result = processQuestionUpdate();
           break;
+        case MessageConstants.MSG_OP_QUESTION_DELETE:
+          result = processQuestionDelete();
+          break;
         default:
           LOGGER.error("Invalid operation type passed in, not able to handle");
           return MessageResponseFactory.createInvalidRequestResponse("Invalid operation");
@@ -53,6 +58,15 @@ class MessageProcessor implements Processor {
       return MessageResponseFactory.createInternalErrorResponse();
     }
 
+  }
+
+  private MessageResponse processQuestionDelete() {
+    ProcessorContext context = createContext();
+    if (context.questionId() == null || context.questionId().isEmpty()) {
+      LOGGER.error("Invalid request, question id not available. Aborting");
+      return MessageResponseFactory.createInvalidRequestResponse("Invalid question id");
+    }
+    return new RepoBuilder().buildQuestionRepo(context).deleteQuestion();
   }
 
   private MessageResponse processQuestionUpdate() {
@@ -93,7 +107,7 @@ class MessageProcessor implements Processor {
     }
 
     userId = ((JsonObject) message.body()).getString(MessageConstants.MSG_USER_ID);
-    if (userId == null) {
+    if (!validateUser(userId)) {
       LOGGER.error("Invalid user id passed. Not authorized.");
       return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(), ExecutionResult.ExecutionStatus.FAILED);
     }
@@ -112,6 +126,23 @@ class MessageProcessor implements Processor {
 
     // All is well, continue processing
     return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
+  }
+
+  private boolean validateUser(String userId) {
+    if (userId == null) {
+      return false;
+    } else if (userId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
+      return true;
+    } else {
+      try {
+        UUID uuid = UUID.fromString(userId);
+        return true;
+      } catch (IllegalArgumentException e) {
+        return false;
+      } catch (Exception e) {
+        return false;
+      }
+    }
   }
 
 }

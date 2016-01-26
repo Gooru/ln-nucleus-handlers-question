@@ -17,14 +17,14 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 
 /**
- * Created by ashish on 11/1/16.
+ * Created by ashish on 26/1/16.
  */
-class UpdateQuestionHandler implements DBHandler {
+public class DeleteQuestionHandler implements DBHandler {
   private final ProcessorContext context;
-  private static final Logger LOGGER = LoggerFactory.getLogger(UpdateQuestionHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DeleteQuestionHandler.class);
   private AJEntityQuestion question;
 
-  public UpdateQuestionHandler(ProcessorContext context) {
+  public DeleteQuestionHandler(ProcessorContext context) {
     this.context = context;
   }
 
@@ -36,16 +36,12 @@ class UpdateQuestionHandler implements DBHandler {
       return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Missing question id"),
         ExecutionResult.ExecutionStatus.FAILED);
     }
-    JsonObject errors = validateForbiddenFields();
-    if (errors != null && !errors.isEmpty()) {
-      return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(errors), ExecutionResult.ExecutionStatus.FAILED);
-    }
+
     if (context.userId() == null || context.userId().isEmpty() || context.userId().equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
       return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Anonymous user denied this action"),
         ExecutionResult.ExecutionStatus.FAILED);
     }
     return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
-
   }
 
   @Override
@@ -70,21 +66,19 @@ class UpdateQuestionHandler implements DBHandler {
 
   @Override
   public ExecutionResult<MessageResponse> executeRequest() {
-    // Populate the model with new values
-    this.question.setAllFromJson(this.context.request());
-    // Now override auto populate values
-    autoPopulate();
-    if (!this.question.isValid()) {
-      LOGGER.debug("Validation errors");
+    setPGObject(AJEntityQuestion.MODIFIER_ID, AJEntityQuestion.UUID_TYPE, this.context.userId());
+    if (this.question.hasErrors()) {
       return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()), ExecutionResult.ExecutionStatus.FAILED);
     }
+
+    this.question.setBoolean(AJEntityQuestion.IS_DELETED, true);
 
     if (!this.question.save()) {
       LOGGER.debug("Save errors");
       return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()), ExecutionResult.ExecutionStatus.FAILED);
     }
     return new ExecutionResult<>(MessageResponseFactory
-      .createNoContentResponse("Updated successfully", EventBuilderFactory.getUpdateQuestionEventBuilder(this.context.questionId())),
+      .createNoContentResponse("Deleted successfully", EventBuilderFactory.getDeleteQuestionEventBuilder(this.context.questionId())),
       ExecutionResult.ExecutionStatus.SUCCESSFUL);
   }
 
@@ -126,16 +120,16 @@ class UpdateQuestionHandler implements DBHandler {
     return false;
   }
 
-  private JsonObject validateForbiddenFields() {
-    JsonObject input = context.request();
-    JsonObject output = new JsonObject();
-    AJEntityQuestion.UPDATE_QUESTION_FORBIDDEN_FIELDS.stream().filter(invalidField -> input.getValue(invalidField) != null)
-                                                     .forEach(invalidField -> output.put(invalidField, "Field not allowed"));
-    return output.isEmpty() ? null : output;
-  }
-
-  private void autoPopulate() {
-    this.question.setModifierId(this.context.userId());
+  private void setPGObject(String field, String type, String value) {
+    PGobject pgObject = new PGobject();
+    pgObject.setType(type);
+    try {
+      pgObject.setValue(value);
+      this.question.set(field, pgObject);
+    } catch (SQLException e) {
+      LOGGER.error("Not able to set value for field: {}, type: {}, value: {}", field, type, value);
+      this.question.errors().put(field, value);
+    }
   }
 
   private JsonObject getModelErrors() {
@@ -143,6 +137,4 @@ class UpdateQuestionHandler implements DBHandler {
     this.question.errors().entrySet().forEach(entry -> errors.put(entry.getKey(), entry.getValue()));
     return errors;
   }
-
-
 }

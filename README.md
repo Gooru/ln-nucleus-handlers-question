@@ -13,11 +13,11 @@ DONE
 * Provided Hikari connection pool from data source registry
 * Processor layer is created which is going to take over the message processing from main verticle once message is read
 * Logging and app configuration
+* Provide implementations for CRUD handlers using Active JDBC
 
 TODO
 ----
-* Transactional layer to govern the transaction
-* DB layer to actually do the operations
+* Harden the implementation with respect to validation of JSON data types while creating and updating, including but not limited to taxonomy, dok, answers etc
 
 
 To understand build related stuff, take a look at **BUILD_README.md**.

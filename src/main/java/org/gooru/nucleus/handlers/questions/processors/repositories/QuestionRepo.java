@@ -11,4 +11,6 @@ public interface QuestionRepo {
   MessageResponse fetchQuestion();
 
   MessageResponse createQuestion();
+
+  MessageResponse deleteQuestion();
 }

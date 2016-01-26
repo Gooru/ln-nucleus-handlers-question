@@ -19,4 +19,8 @@ public class DBHandlerBuilder {
     return new CreateQuestionHandler(context);
 
   }
+
+  public DBHandler buildDeleteQuestionHandler(ProcessorContext context) {
+    return new DeleteQuestionHandler(context);
+  }
 }
