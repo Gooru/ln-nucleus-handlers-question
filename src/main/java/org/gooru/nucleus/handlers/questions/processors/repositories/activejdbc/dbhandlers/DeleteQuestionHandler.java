@@ -101,7 +101,7 @@ public class DeleteQuestionHandler implements DBHandler {
         // Check if user is one of collaborator on course, we do not need to check the owner as course owner should be question creator
         authRecordCount =
           Base.count(AJEntityQuestion.TABLE_COURSE, AJEntityQuestion.AUTH_VIA_COURSE_FILTER, course, context.userId(), context.userId());
-        if (authRecordCount > 1) {
+        if (authRecordCount >= 1) {
           // Auth check successful
           LOGGER.debug("Auth check successful based on course: {}", course);
           return true;
@@ -110,7 +110,7 @@ public class DeleteQuestionHandler implements DBHandler {
         // Check if the user is one of collaborator on collection, we do not need to check about course now
         authRecordCount =
           Base.count(AJEntityQuestion.TABLE_COLLECTION, AJEntityQuestion.AUTH_VIA_COLLECTION_FILTER, collection, context.userId(), context.userId());
-        if (authRecordCount > 1) {
+        if (authRecordCount >= 1) {
           LOGGER.debug("Auth check successful based on collection: {}", collection);
           return true;
         }
