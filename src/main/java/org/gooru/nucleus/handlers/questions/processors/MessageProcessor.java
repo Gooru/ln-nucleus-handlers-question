@@ -62,8 +62,7 @@ class MessageProcessor implements Processor {
 
   private MessageResponse processQuestionDelete() {
     ProcessorContext context = createContext();
-    if (context.questionId() == null || context.questionId().isEmpty()) {
-      LOGGER.error("Invalid request, question id not available. Aborting");
+    if (isIdInvalid(context)) {
       return MessageResponseFactory.createInvalidRequestResponse("Invalid question id");
     }
     return new RepoBuilder().buildQuestionRepo(context).deleteQuestion();
@@ -71,8 +70,7 @@ class MessageProcessor implements Processor {
 
   private MessageResponse processQuestionUpdate() {
     ProcessorContext context = createContext();
-    if (context.questionId() == null || context.questionId().isEmpty()) {
-      LOGGER.error("Invalid request, question id not available. Aborting");
+    if (isIdInvalid(context)) {
       return MessageResponseFactory.createInvalidRequestResponse("Invalid question id");
     }
     return new RepoBuilder().buildQuestionRepo(context).updateQuestion();
@@ -80,8 +78,7 @@ class MessageProcessor implements Processor {
 
   private MessageResponse processQuestionGet() {
     ProcessorContext context = createContext();
-    if (context.questionId() == null || context.questionId().isEmpty()) {
-      LOGGER.error("Invalid request, question id not available. Aborting");
+    if (isIdInvalid(context)) {
       return MessageResponseFactory.createInvalidRequestResponse("Invalid question id");
     }
     return new RepoBuilder().buildQuestionRepo(context).fetchQuestion();
@@ -129,20 +126,33 @@ class MessageProcessor implements Processor {
   }
 
   private boolean validateUser(String userId) {
-    if (userId == null) {
+    if (userId == null || userId.isEmpty()) {
       return false;
-    } else if (userId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
-      return true;
     } else {
-      try {
-        UUID uuid = UUID.fromString(userId);
-        return true;
-      } catch (IllegalArgumentException e) {
-        return false;
-      } catch (Exception e) {
-        return false;
-      }
+      return userId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS) || validateUuid(userId);
     }
   }
+
+  private boolean isIdInvalid(ProcessorContext context) {
+    if (context.questionId() == null || context.questionId().isEmpty()) {
+      LOGGER.error("Invalid request, question id not available. Aborting");
+      return true;
+    }
+    return !validateUuid(context.questionId());
+  }
+
+  private boolean validateUuid(String uuidString) {
+    try {
+      UUID uuid = UUID.fromString(uuidString);
+      return true;
+    } catch (IllegalArgumentException e) {
+      LOGGER.error("Invalid request, id is not a valid uuid. Aborting");
+      return false;
+    } catch (Exception e) {
+      LOGGER.error("Invalid request, id is not a valid uuid. Aborting");
+      return false;
+    }
+  }
+
 
 }

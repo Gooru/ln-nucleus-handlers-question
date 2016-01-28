@@ -18,6 +18,8 @@ DONE
 TODO
 ----
 * Harden the implementation with respect to validation of JSON data types while creating and updating, including but not limited to taxonomy, dok, answers etc
+* Provide not null constraint validator before going to DB. Currently it is done at DB
+* Provide short title auto populate while insert and update from title
 
 
 To understand build related stuff, take a look at **BUILD_README.md**.
