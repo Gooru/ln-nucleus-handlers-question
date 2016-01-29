@@ -15,10 +15,10 @@ import java.util.UUID;
 class MessageProcessor implements Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class);
+  private final Message<Object> message;
   private String userId;
   private JsonObject prefs;
   private JsonObject request;
-  private final Message<Object> message;
 
   public MessageProcessor(Message<Object> message) {
     this.message = message;
@@ -126,11 +126,7 @@ class MessageProcessor implements Processor {
   }
 
   private boolean validateUser(String userId) {
-    if (userId == null || userId.isEmpty()) {
-      return false;
-    } else {
-      return userId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS) || validateUuid(userId);
-    }
+    return !(userId == null || userId.isEmpty()) && (userId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS) || validateUuid(userId));
   }
 
   private boolean isIdInvalid(ProcessorContext context) {

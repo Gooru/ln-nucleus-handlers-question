@@ -15,8 +15,8 @@ import org.slf4j.LoggerFactory;
  * Created by ashish on 11/1/16.
  */
 class FetchQuestionHandler implements DBHandler {
-  private final ProcessorContext context;
   private static final Logger LOGGER = LoggerFactory.getLogger(FetchQuestionHandler.class);
+  private final ProcessorContext context;
   private AJEntityQuestion question;
 
   public FetchQuestionHandler(ProcessorContext context) {

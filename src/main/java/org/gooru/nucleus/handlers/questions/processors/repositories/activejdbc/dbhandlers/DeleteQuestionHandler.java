@@ -10,18 +10,15 @@ import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
-import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.sql.SQLException;
 
 /**
  * Created by ashish on 26/1/16.
  */
 public class DeleteQuestionHandler implements DBHandler {
-  private final ProcessorContext context;
   private static final Logger LOGGER = LoggerFactory.getLogger(DeleteQuestionHandler.class);
+  private final ProcessorContext context;
   private AJEntityQuestion question;
 
   public DeleteQuestionHandler(ProcessorContext context) {
@@ -66,7 +63,7 @@ public class DeleteQuestionHandler implements DBHandler {
 
   @Override
   public ExecutionResult<MessageResponse> executeRequest() {
-    setPGObject(AJEntityQuestion.MODIFIER_ID, AJEntityQuestion.UUID_TYPE, this.context.userId());
+    this.question.setModifierId(this.context.userId());
     if (this.question.hasErrors()) {
       return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()), ExecutionResult.ExecutionStatus.FAILED);
     }
@@ -99,8 +96,7 @@ public class DeleteQuestionHandler implements DBHandler {
       long authRecordCount;
       if (course != null) {
         // Check if user is one of collaborator on course, we do not need to check the owner as course owner should be question creator
-        authRecordCount =
-          Base.count(AJEntityQuestion.TABLE_COURSE, AJEntityQuestion.AUTH_FILTER, course, context.userId(), context.userId());
+        authRecordCount = Base.count(AJEntityQuestion.TABLE_COURSE, AJEntityQuestion.AUTH_FILTER, course, context.userId(), context.userId());
         if (authRecordCount >= 1) {
           // Auth check successful
           LOGGER.debug("Auth check successful based on course: {}", course);
@@ -108,8 +104,7 @@ public class DeleteQuestionHandler implements DBHandler {
         }
       } else if (collection != null) {
         // Check if the user is one of collaborator on collection, we do not need to check about course now
-        authRecordCount =
-          Base.count(AJEntityQuestion.TABLE_COLLECTION, AJEntityQuestion.AUTH_FILTER, collection, context.userId(), context.userId());
+        authRecordCount = Base.count(AJEntityQuestion.TABLE_COLLECTION, AJEntityQuestion.AUTH_FILTER, collection, context.userId(), context.userId());
         if (authRecordCount >= 1) {
           LOGGER.debug("Auth check successful based on collection: {}", collection);
           return true;
@@ -118,18 +113,6 @@ public class DeleteQuestionHandler implements DBHandler {
     }
 
     return false;
-  }
-
-  private void setPGObject(String field, String type, String value) {
-    PGobject pgObject = new PGobject();
-    pgObject.setType(type);
-    try {
-      pgObject.setValue(value);
-      this.question.set(field, pgObject);
-    } catch (SQLException e) {
-      LOGGER.error("Not able to set value for field: {}, type: {}, value: {}", field, type, value);
-      this.question.errors().put(field, value);
-    }
   }
 
   private JsonObject getModelErrors() {

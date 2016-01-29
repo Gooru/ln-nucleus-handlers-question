@@ -27,7 +27,4 @@ public class EventBuilderFactory {
     return () -> new JsonObject().put(EVENT_NAME, EVT_QUESTION_UPDATE).put(EVENT_BODY, new JsonObject().put(QUESTION_ID, questionId));
   }
 
-  public static EventBuilder getCopyQuestionEventBuilder(String questionId) {
-    return () -> new JsonObject().put(EVENT_NAME, EVT_QUESTION_COPY).put(EVENT_BODY, new JsonObject().put(QUESTION_ID, questionId));
-  }
 }

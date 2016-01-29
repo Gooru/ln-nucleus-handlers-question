@@ -13,14 +13,12 @@ import org.slf4j.LoggerFactory;
 public class MessageResponse {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MessageResponse.class);
-  private final JsonObject response;
   private final DeliveryOptions deliveryOptions;
   private final JsonObject reply;
   private final JsonObject event;
 
   // Private constructor
   private MessageResponse(JsonObject response) {
-    this.response = response.copy();
     this.deliveryOptions = new DeliveryOptions().addHeader(MessageConstants.MSG_OP_STATUS, response.getString(MessageConstants.MSG_OP_STATUS));
     this.reply = response.getJsonObject(MessageConstants.RESP_CONTAINER_MBUS);
     this.event = response.getJsonObject(MessageConstants.RESP_CONTAINER_EVENT);
@@ -49,6 +47,8 @@ public class MessageResponse {
 
     public Builder() {
       this.headers = new JsonObject();
+      // Default content type is JSON, unless caller overrides it later
+      this.setContentTypeJson();
     }
 
     // Setters for global headers
@@ -157,10 +157,8 @@ public class MessageResponse {
     private JsonObject buildErrorResponse() {
       JsonObject result = new JsonObject().put(MessageConstants.MSG_OP_STATUS, MessageConstants.MSG_OP_STATUS_ERROR);
       result.put(MessageConstants.RESP_CONTAINER_MBUS,
-        new JsonObject()
-          .put(MessageConstants.MSG_HTTP_STATUS, HttpConstants.HttpStatus.ERROR.getCode())
-          .put(MessageConstants.MSG_HTTP_BODY, new JsonObject().put(MessageConstants.MSG_OP_STATUS_ERROR, new JsonObject()))
-      );
+        new JsonObject().put(MessageConstants.MSG_HTTP_STATUS, HttpConstants.HttpStatus.ERROR.getCode())
+                        .put(MessageConstants.MSG_HTTP_BODY, new JsonObject().put(MessageConstants.MSG_OP_STATUS_ERROR, new JsonObject())));
       return result;
     }
 

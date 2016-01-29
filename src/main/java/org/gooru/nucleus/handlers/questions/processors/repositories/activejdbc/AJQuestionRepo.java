@@ -23,11 +23,6 @@ public class AJQuestionRepo implements QuestionRepo {
   }
 
   @Override
-  public MessageResponse deleteQuestion() {
-    return new TransactionExecutor().executeTransaction(new DBHandlerBuilder().buildDeleteQuestionHandler(context));
-  }
-
-  @Override
   public MessageResponse fetchQuestion() {
     return new TransactionExecutor().executeTransaction(new DBHandlerBuilder().buildFetchQuestionHandler(context));
 
@@ -37,5 +32,10 @@ public class AJQuestionRepo implements QuestionRepo {
   public MessageResponse createQuestion() {
     return new TransactionExecutor().executeTransaction(new DBHandlerBuilder().buildCreateQuestionHandler(context));
 
+  }
+
+  @Override
+  public MessageResponse deleteQuestion() {
+    return new TransactionExecutor().executeTransaction(new DBHandlerBuilder().buildDeleteQuestionHandler(context));
   }
 }

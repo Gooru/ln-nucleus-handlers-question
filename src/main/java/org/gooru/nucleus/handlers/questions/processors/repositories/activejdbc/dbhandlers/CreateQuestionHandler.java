@@ -8,11 +8,8 @@ import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.e
 import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
-import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.sql.SQLException;
 
 /**
  * Created by ashish on 11/1/16.
@@ -92,6 +89,7 @@ class CreateQuestionHandler implements DBHandler {
   private void autoPopulate() {
     this.question.setModifierId(context.userId());
     this.question.setCreatorId(context.userId());
+    this.question.setContentFormatQuestion();
   }
 
   private JsonObject getModelErrors() {

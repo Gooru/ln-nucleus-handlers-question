@@ -17,8 +17,8 @@ import org.slf4j.LoggerFactory;
  * Created by ashish on 11/1/16.
  */
 class UpdateQuestionHandler implements DBHandler {
-  private final ProcessorContext context;
   private static final Logger LOGGER = LoggerFactory.getLogger(UpdateQuestionHandler.class);
+  private final ProcessorContext context;
   private AJEntityQuestion question;
 
   public UpdateQuestionHandler(ProcessorContext context) {
@@ -102,8 +102,7 @@ class UpdateQuestionHandler implements DBHandler {
       long authRecordCount;
       if (course != null) {
         // Check if user is one of collaborator on course, we do not need to check the owner as course owner should be question creator
-        authRecordCount =
-          Base.count(AJEntityQuestion.TABLE_COURSE, AJEntityQuestion.AUTH_FILTER, course, context.userId(), context.userId());
+        authRecordCount = Base.count(AJEntityQuestion.TABLE_COURSE, AJEntityQuestion.AUTH_FILTER, course, context.userId(), context.userId());
         if (authRecordCount >= 1) {
           // Auth check successful
           LOGGER.debug("Auth check successful based on course: {}", course);
@@ -111,8 +110,7 @@ class UpdateQuestionHandler implements DBHandler {
         }
       } else if (collection != null) {
         // Check if the user is one of collaborator on collection, we do not need to check about course now
-        authRecordCount =
-          Base.count(AJEntityQuestion.TABLE_COLLECTION, AJEntityQuestion.AUTH_FILTER, collection, context.userId(), context.userId());
+        authRecordCount = Base.count(AJEntityQuestion.TABLE_COLLECTION, AJEntityQuestion.AUTH_FILTER, collection, context.userId(), context.userId());
         if (authRecordCount >= 1) {
           LOGGER.debug("Auth check successful based on collection: {}", collection);
           return true;
