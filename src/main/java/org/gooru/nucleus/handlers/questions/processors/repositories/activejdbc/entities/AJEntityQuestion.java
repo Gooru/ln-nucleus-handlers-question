@@ -28,9 +28,7 @@ public class AJEntityQuestion extends Model {
     "select id, title, short_title, publish_date, description, answer, metadata, taxonomy, depth_of_knowledge, hint_explanation_detail, thumbnail, " +
       "creator_id from content where content_format = ?::content_format_type and id = ?::uuid and is_deleted = ?";
 
-  public static final String AUTH_VIA_COLLECTION_FILTER = "id = ? and (owner_id = ? or collaborator ?? ?);";
-
-  public static final String AUTH_VIA_COURSE_FILTER = "id = ? and (owner_id = ? or collaborator ?? ?)";
+  public static final String AUTH_FILTER = "id = ?::uuid and (owner_id = ?::uuid or collaborator ?? ?);";
 
   public static final String TABLE_COURSE = "course";
   public static final String TABLE_COLLECTION = "collection";

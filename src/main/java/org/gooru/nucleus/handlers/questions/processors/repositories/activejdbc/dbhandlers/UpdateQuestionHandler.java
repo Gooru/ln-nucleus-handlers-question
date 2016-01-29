@@ -10,11 +10,8 @@ import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
-import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.sql.SQLException;
 
 /**
  * Created by ashish on 11/1/16.
@@ -106,7 +103,7 @@ class UpdateQuestionHandler implements DBHandler {
       if (course != null) {
         // Check if user is one of collaborator on course, we do not need to check the owner as course owner should be question creator
         authRecordCount =
-          Base.count(AJEntityQuestion.TABLE_COURSE, AJEntityQuestion.AUTH_VIA_COURSE_FILTER, course, context.userId(), context.userId());
+          Base.count(AJEntityQuestion.TABLE_COURSE, AJEntityQuestion.AUTH_FILTER, course, context.userId(), context.userId());
         if (authRecordCount >= 1) {
           // Auth check successful
           LOGGER.debug("Auth check successful based on course: {}", course);
@@ -115,7 +112,7 @@ class UpdateQuestionHandler implements DBHandler {
       } else if (collection != null) {
         // Check if the user is one of collaborator on collection, we do not need to check about course now
         authRecordCount =
-          Base.count(AJEntityQuestion.TABLE_COLLECTION, AJEntityQuestion.AUTH_VIA_COLLECTION_FILTER, collection, context.userId(), context.userId());
+          Base.count(AJEntityQuestion.TABLE_COLLECTION, AJEntityQuestion.AUTH_FILTER, collection, context.userId(), context.userId());
         if (authRecordCount >= 1) {
           LOGGER.debug("Auth check successful based on collection: {}", collection);
           return true;
