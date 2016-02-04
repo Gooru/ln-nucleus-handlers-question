@@ -10,14 +10,18 @@ import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
+import org.javalite.activejdbc.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ResourceBundle;
 
 /**
  * Created by ashish on 26/1/16.
  */
 public class DeleteQuestionHandler implements DBHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(DeleteQuestionHandler.class);
+  private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
   private final ProcessorContext context;
   private AJEntityQuestion question;
 
@@ -30,12 +34,12 @@ public class DeleteQuestionHandler implements DBHandler {
     // There should be a question id present
     if (context.questionId() == null || context.questionId().isEmpty()) {
       LOGGER.warn("Missing question id");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Missing question id"),
+      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(RESOURCE_BUNDLE.getString("missing.question.id")),
         ExecutionResult.ExecutionStatus.FAILED);
     }
 
     if (context.userId() == null || context.userId().isEmpty() || context.userId().equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
-      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Anonymous user denied this action"),
+      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("anonymous.user")),
         ExecutionResult.ExecutionStatus.FAILED);
     }
     return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
@@ -44,18 +48,19 @@ public class DeleteQuestionHandler implements DBHandler {
   @Override
   public ExecutionResult<MessageResponse> validateRequest() {
     LazyList<AJEntityQuestion> questions =
-      AJEntityQuestion.findBySQL(AJEntityQuestion.VALIDATE_EXISTS_NON_DELETED, AJEntityQuestion.QUESTION, context.questionId(), false);
+      Model.findBySQL(AJEntityQuestion.VALIDATE_EXISTS_NON_DELETED, AJEntityQuestion.QUESTION, context.questionId(), false);
     // Question should be present in DB
     if (questions.size() < 1) {
       LOGGER.warn("Question id: {} not present in DB", context.questionId());
-      return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse("question id: " + context.questionId()),
+      return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(RESOURCE_BUNDLE.getString("question.id") + context.questionId()),
         ExecutionResult.ExecutionStatus.FAILED);
     }
 
     this.question = questions.get(0);
     if (!authorized()) {
       // Update is forbidden
-      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Need to be owner/collaborator on course/collection"),
+      return new ExecutionResult<>(
+        MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("not.owner.collaborator.on.course.collection")),
         ExecutionResult.ExecutionStatus.FAILED);
     }
     return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
@@ -75,7 +80,7 @@ public class DeleteQuestionHandler implements DBHandler {
       return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()), ExecutionResult.ExecutionStatus.FAILED);
     }
     return new ExecutionResult<>(MessageResponseFactory
-      .createNoContentResponse("Deleted successfully", EventBuilderFactory.getDeleteQuestionEventBuilder(this.context.questionId())),
+      .createNoContentResponse(RESOURCE_BUNDLE.getString("deleted"), EventBuilderFactory.getDeleteQuestionEventBuilder(this.context.questionId())),
       ExecutionResult.ExecutionStatus.SUCCESSFUL);
   }
 

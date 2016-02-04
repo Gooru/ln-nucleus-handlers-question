@@ -11,11 +11,14 @@ import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ResourceBundle;
+
 /**
  * Created by ashish on 11/1/16.
  */
 class CreateQuestionHandler implements DBHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(CreateQuestionHandler.class);
+  private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
 
   private final ProcessorContext context;
   private AJEntityQuestion question;
@@ -29,7 +32,7 @@ class CreateQuestionHandler implements DBHandler {
     // There should be a question id present
     if (context.request() == null || context.request().isEmpty()) {
       LOGGER.warn("Invalid request payload");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Invalid request payload"),
+      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(RESOURCE_BUNDLE.getString("empty.payload")),
         ExecutionResult.ExecutionStatus.FAILED);
     }
     JsonObject errors = validateForbiddenFields();
@@ -37,7 +40,7 @@ class CreateQuestionHandler implements DBHandler {
       return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(errors), ExecutionResult.ExecutionStatus.FAILED);
     }
     if (context.userId() == null || context.userId().isEmpty() || context.userId().equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
-      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Anonymous user denied this action"),
+      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("anonymous.user")),
         ExecutionResult.ExecutionStatus.FAILED);
     }
     return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);

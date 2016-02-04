@@ -10,14 +10,18 @@ import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
+import org.javalite.activejdbc.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ResourceBundle;
 
 /**
  * Created by ashish on 11/1/16.
  */
 class UpdateQuestionHandler implements DBHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(UpdateQuestionHandler.class);
+  private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
   private final ProcessorContext context;
   private AJEntityQuestion question;
 
@@ -30,7 +34,7 @@ class UpdateQuestionHandler implements DBHandler {
     // There should be a question id present
     if (context.questionId() == null || context.questionId().isEmpty()) {
       LOGGER.warn("Missing question id");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Missing question id"),
+      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(RESOURCE_BUNDLE.getString("missing.question.id")),
         ExecutionResult.ExecutionStatus.FAILED);
     }
     JsonObject errors = validateForbiddenFields();
@@ -38,7 +42,7 @@ class UpdateQuestionHandler implements DBHandler {
       return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(errors), ExecutionResult.ExecutionStatus.FAILED);
     }
     if (context.userId() == null || context.userId().isEmpty() || context.userId().equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
-      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Anonymous user denied this action"),
+      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("anonymous.user")),
         ExecutionResult.ExecutionStatus.FAILED);
     }
     return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
@@ -48,18 +52,19 @@ class UpdateQuestionHandler implements DBHandler {
   @Override
   public ExecutionResult<MessageResponse> validateRequest() {
     LazyList<AJEntityQuestion> questions =
-      AJEntityQuestion.findBySQL(AJEntityQuestion.VALIDATE_EXISTS_NON_DELETED, AJEntityQuestion.QUESTION, context.questionId(), false);
+      Model.findBySQL(AJEntityQuestion.VALIDATE_EXISTS_NON_DELETED, AJEntityQuestion.QUESTION, context.questionId(), false);
     // Question should be present in DB
     if (questions.size() < 1) {
       LOGGER.warn("Question id: {} not present in DB", context.questionId());
-      return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse("question id: " + context.questionId()),
+      return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(RESOURCE_BUNDLE.getString("question.id") + context.questionId()),
         ExecutionResult.ExecutionStatus.FAILED);
     }
 
     this.question = questions.get(0);
     if (!authorized()) {
       // Update is forbidden
-      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Need to be owner/collaborator on course/collection"),
+      return new ExecutionResult<>(
+        MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("not.owner.collaborator.on.course.collection")),
         ExecutionResult.ExecutionStatus.FAILED);
     }
     return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
@@ -81,7 +86,7 @@ class UpdateQuestionHandler implements DBHandler {
       return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()), ExecutionResult.ExecutionStatus.FAILED);
     }
     return new ExecutionResult<>(MessageResponseFactory
-      .createNoContentResponse("Updated successfully", EventBuilderFactory.getUpdateQuestionEventBuilder(this.context.questionId())),
+      .createNoContentResponse(RESOURCE_BUNDLE.getString("updated"), EventBuilderFactory.getUpdateQuestionEventBuilder(this.context.questionId())),
       ExecutionResult.ExecutionStatus.SUCCESSFUL);
   }
 
@@ -124,8 +129,8 @@ class UpdateQuestionHandler implements DBHandler {
   private JsonObject validateForbiddenFields() {
     JsonObject input = context.request();
     JsonObject output = new JsonObject();
-    AJEntityQuestion.UPDATE_QUESTION_FORBIDDEN_FIELDS.stream().filter(invalidField -> input.getValue(invalidField) != null)
-                                                     .forEach(invalidField -> output.put(invalidField, "Field not allowed"));
+    AJEntityQuestion.UPDATE_QUESTION_FORBIDDEN_FIELDS.stream().filter(invalidField -> input.getValue(invalidField) != null).forEach(
+      invalidField -> output.put(invalidField, RESOURCE_BUNDLE.getString("field.not.allowed")));
     return output.isEmpty() ? null : output;
   }
 

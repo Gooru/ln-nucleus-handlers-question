@@ -10,11 +10,13 @@ import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ResourceBundle;
 import java.util.UUID;
 
 class MessageProcessor implements Processor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class);
+  private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
   private final Message<Object> message;
   private String userId;
   private JsonObject prefs;
@@ -50,7 +52,7 @@ class MessageProcessor implements Processor {
           break;
         default:
           LOGGER.error("Invalid operation type passed in, not able to handle");
-          return MessageResponseFactory.createInvalidRequestResponse("Invalid operation");
+          return MessageResponseFactory.createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.operation"));
       }
       return result;
     } catch (Throwable e) {
@@ -63,7 +65,7 @@ class MessageProcessor implements Processor {
   private MessageResponse processQuestionDelete() {
     ProcessorContext context = createContext();
     if (isIdInvalid(context)) {
-      return MessageResponseFactory.createInvalidRequestResponse("Invalid question id");
+      return MessageResponseFactory.createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.question.id"));
     }
     return RepoBuilder.buildQuestionRepo(context).deleteQuestion();
   }
@@ -71,7 +73,7 @@ class MessageProcessor implements Processor {
   private MessageResponse processQuestionUpdate() {
     ProcessorContext context = createContext();
     if (isIdInvalid(context)) {
-      return MessageResponseFactory.createInvalidRequestResponse("Invalid question id");
+      return MessageResponseFactory.createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.question.id"));
     }
     return RepoBuilder.buildQuestionRepo(context).updateQuestion();
   }
@@ -79,7 +81,7 @@ class MessageProcessor implements Processor {
   private MessageResponse processQuestionGet() {
     ProcessorContext context = createContext();
     if (isIdInvalid(context)) {
-      return MessageResponseFactory.createInvalidRequestResponse("Invalid question id");
+      return MessageResponseFactory.createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.question.id"));
     }
     return RepoBuilder.buildQuestionRepo(context).fetchQuestion();
   }
@@ -100,25 +102,29 @@ class MessageProcessor implements Processor {
   private ExecutionResult<MessageResponse> validateAndInitialize() {
     if (message == null || !(message.body() instanceof JsonObject)) {
       LOGGER.error("Invalid message received, either null or body of message is not JsonObject ");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(), ExecutionResult.ExecutionStatus.FAILED);
+      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(RESOURCE_BUNDLE.getString("empty.payload.or.invalid.json")),
+        ExecutionResult.ExecutionStatus.FAILED);
     }
 
     userId = ((JsonObject) message.body()).getString(MessageConstants.MSG_USER_ID);
     if (!validateUser(userId)) {
       LOGGER.error("Invalid user id passed. Not authorized.");
-      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(), ExecutionResult.ExecutionStatus.FAILED);
+      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("invalid.userid")),
+        ExecutionResult.ExecutionStatus.FAILED);
     }
     prefs = ((JsonObject) message.body()).getJsonObject(MessageConstants.MSG_KEY_PREFS);
     request = ((JsonObject) message.body()).getJsonObject(MessageConstants.MSG_HTTP_BODY);
 
     if (prefs == null || prefs.isEmpty()) {
       LOGGER.error("Invalid preferences obtained, probably not authorized properly");
-      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(), ExecutionResult.ExecutionStatus.FAILED);
+      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("incomplete.authorization")),
+        ExecutionResult.ExecutionStatus.FAILED);
     }
 
     if (request == null) {
       LOGGER.error("Invalid JSON payload on Message Bus");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(), ExecutionResult.ExecutionStatus.FAILED);
+      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(RESOURCE_BUNDLE.getString("empty.payload")),
+        ExecutionResult.ExecutionStatus.FAILED);
     }
 
     // All is well, continue processing
