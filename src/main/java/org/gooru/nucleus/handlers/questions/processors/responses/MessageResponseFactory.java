@@ -8,7 +8,11 @@ import org.gooru.nucleus.handlers.questions.processors.events.EventBuilder;
 /**
  * Created by ashish on 6/1/16.
  */
-public class MessageResponseFactory {
+public final class MessageResponseFactory {
+  private MessageResponseFactory() {
+    throw new AssertionError();
+  }
+
   public static MessageResponse createInvalidRequestResponse() {
     return new MessageResponse.Builder().failed().setStatusBadRequest().build();
   }

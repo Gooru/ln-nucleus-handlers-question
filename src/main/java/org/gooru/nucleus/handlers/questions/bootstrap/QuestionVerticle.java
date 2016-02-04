@@ -41,7 +41,7 @@ public class QuestionVerticle extends AbstractVerticle {
       LOGGER.debug("Received message: " + message.body());
 
       vertx.executeBlocking(future -> {
-        MessageResponse result = new ProcessorBuilder(message).build().process();
+        MessageResponse result = ProcessorBuilder.build(message).process();
         future.complete(result);
       }, res -> {
         MessageResponse result = (MessageResponse) res.result();

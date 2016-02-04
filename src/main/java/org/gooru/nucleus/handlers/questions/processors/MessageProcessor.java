@@ -20,7 +20,7 @@ class MessageProcessor implements Processor {
   private JsonObject prefs;
   private JsonObject request;
 
-  public MessageProcessor(Message<Object> message) {
+  MessageProcessor(Message<Object> message) {
     this.message = message;
   }
 
@@ -65,7 +65,7 @@ class MessageProcessor implements Processor {
     if (isIdInvalid(context)) {
       return MessageResponseFactory.createInvalidRequestResponse("Invalid question id");
     }
-    return new RepoBuilder().buildQuestionRepo(context).deleteQuestion();
+    return RepoBuilder.buildQuestionRepo(context).deleteQuestion();
   }
 
   private MessageResponse processQuestionUpdate() {
@@ -73,7 +73,7 @@ class MessageProcessor implements Processor {
     if (isIdInvalid(context)) {
       return MessageResponseFactory.createInvalidRequestResponse("Invalid question id");
     }
-    return new RepoBuilder().buildQuestionRepo(context).updateQuestion();
+    return RepoBuilder.buildQuestionRepo(context).updateQuestion();
   }
 
   private MessageResponse processQuestionGet() {
@@ -81,13 +81,13 @@ class MessageProcessor implements Processor {
     if (isIdInvalid(context)) {
       return MessageResponseFactory.createInvalidRequestResponse("Invalid question id");
     }
-    return new RepoBuilder().buildQuestionRepo(context).fetchQuestion();
+    return RepoBuilder.buildQuestionRepo(context).fetchQuestion();
   }
 
   private MessageResponse processQuestionCreate() {
     ProcessorContext context = createContext();
 
-    return new RepoBuilder().buildQuestionRepo(context).createQuestion();
+    return RepoBuilder.buildQuestionRepo(context).createQuestion();
   }
 
 

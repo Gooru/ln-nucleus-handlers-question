@@ -18,24 +18,24 @@ public class AJQuestionRepo implements QuestionRepo {
 
   @Override
   public MessageResponse updateQuestion() {
-    return new TransactionExecutor().executeTransaction(new DBHandlerBuilder().buildUpdateQuestionHandler(context));
+    return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildUpdateQuestionHandler(context));
 
   }
 
   @Override
   public MessageResponse fetchQuestion() {
-    return new TransactionExecutor().executeTransaction(new DBHandlerBuilder().buildFetchQuestionHandler(context));
+    return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildFetchQuestionHandler(context));
 
   }
 
   @Override
   public MessageResponse createQuestion() {
-    return new TransactionExecutor().executeTransaction(new DBHandlerBuilder().buildCreateQuestionHandler(context));
+    return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildCreateQuestionHandler(context));
 
   }
 
   @Override
   public MessageResponse deleteQuestion() {
-    return new TransactionExecutor().executeTransaction(new DBHandlerBuilder().buildDeleteQuestionHandler(context));
+    return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildDeleteQuestionHandler(context));
   }
 }

@@ -21,7 +21,7 @@ class UpdateQuestionHandler implements DBHandler {
   private final ProcessorContext context;
   private AJEntityQuestion question;
 
-  public UpdateQuestionHandler(ProcessorContext context) {
+  UpdateQuestionHandler(ProcessorContext context) {
     this.context = context;
   }
 

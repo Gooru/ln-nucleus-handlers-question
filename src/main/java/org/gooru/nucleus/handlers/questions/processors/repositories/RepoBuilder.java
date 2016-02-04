@@ -6,8 +6,13 @@ import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.A
 /**
  * Created by ashish on 11/1/16.
  */
-public class RepoBuilder {
-  public QuestionRepo buildQuestionRepo(ProcessorContext context) {
-    return new AJQuestionRepoBuilder().buildQuestionRepo(context);
+public final class RepoBuilder {
+
+  private RepoBuilder() {
+    throw new AssertionError();
+  }
+
+  public static QuestionRepo buildQuestionRepo(ProcessorContext context) {
+    return AJQuestionRepoBuilder.buildQuestionRepo(context);
   }
 }

@@ -19,7 +19,7 @@ class FetchQuestionHandler implements DBHandler {
   private final ProcessorContext context;
   private AJEntityQuestion question;
 
-  public FetchQuestionHandler(ProcessorContext context) {
+  FetchQuestionHandler(ProcessorContext context) {
     this.context = context;
   }
 
@@ -53,7 +53,7 @@ class FetchQuestionHandler implements DBHandler {
   @Override
   public ExecutionResult<MessageResponse> executeRequest() {
     return new ExecutionResult<>(MessageResponseFactory.createOkayResponse(
-      new JsonObject(new JsonFormatterBuilder().buildSimpleJsonFormatter(false, AJEntityQuestion.FETCH_QUESTION_FIELDS).toJson(this.question))),
+      new JsonObject(JsonFormatterBuilder.buildSimpleJsonFormatter(false, AJEntityQuestion.FETCH_QUESTION_FIELDS).toJson(this.question))),
       ExecutionResult.ExecutionStatus.SUCCESSFUL);
   }
 

@@ -20,7 +20,7 @@ class CreateQuestionHandler implements DBHandler {
   private final ProcessorContext context;
   private AJEntityQuestion question;
 
-  public CreateQuestionHandler(ProcessorContext context) {
+  CreateQuestionHandler(ProcessorContext context) {
     this.context = context;
   }
 
