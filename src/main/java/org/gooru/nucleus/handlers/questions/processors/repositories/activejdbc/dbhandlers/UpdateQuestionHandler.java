@@ -10,7 +10,6 @@ import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
-import org.javalite.activejdbc.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +51,7 @@ class UpdateQuestionHandler implements DBHandler {
   @Override
   public ExecutionResult<MessageResponse> validateRequest() {
     LazyList<AJEntityQuestion> questions =
-      Model.findBySQL(AJEntityQuestion.VALIDATE_EXISTS_NON_DELETED, AJEntityQuestion.QUESTION, context.questionId(), false);
+      AJEntityQuestion.findBySQL(AJEntityQuestion.VALIDATE_EXISTS_NON_DELETED, AJEntityQuestion.QUESTION, context.questionId(), false);
     // Question should be present in DB
     if (questions.size() < 1) {
       LOGGER.warn("Question id: {} not present in DB", context.questionId());

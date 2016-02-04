@@ -8,7 +8,6 @@ import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.LazyList;
-import org.javalite.activejdbc.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +40,8 @@ class FetchQuestionHandler implements DBHandler {
   @Override
   public ExecutionResult<MessageResponse> validateRequest() {
 
-    LazyList<AJEntityQuestion> questions = Model.findBySQL(AJEntityQuestion.FETCH_QUESTION, AJEntityQuestion.QUESTION, context.questionId(), false);
+    LazyList<AJEntityQuestion> questions =
+      AJEntityQuestion.findBySQL(AJEntityQuestion.FETCH_QUESTION, AJEntityQuestion.QUESTION, context.questionId(), false);
     // Question should be present in DB
     if (questions.size() < 1) {
       LOGGER.warn("Question id: {} not present in DB", context.questionId());
