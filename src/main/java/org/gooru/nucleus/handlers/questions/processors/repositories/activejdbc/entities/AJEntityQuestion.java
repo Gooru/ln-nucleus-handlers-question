@@ -27,10 +27,13 @@ public class AJEntityQuestion extends Model {
   public static final String CREATOR_ID = "creator_id";
   public static final String CONTENT_FORMAT = "content_format";
   public static final String CONTENT_SUBFORMAT = "content_subformat";
+  public static final String SHORT_TITLE = "short_title";
+  public static final String TITLE = "title";
+
   // QUERIES & FILTERS
   public static final String VALIDATE_EXISTS_NON_DELETED =
-    "select id, creator_id, publish_date, collection_id, course_id from content where content_format = ?::content_format_type and id = ?::uuid and " +
-      "is_deleted = ?";
+    "select id, creator_id, publish_date, collection_id, course_id, title, short_title from content where content_format = ?::content_format_type " +
+      "and id = ?::uuid and is_deleted = ?";
   public static final String FETCH_QUESTION =
     "select id, title, short_title, publish_date, description, answer, metadata, taxonomy, depth_of_knowledge, hint_explanation_detail, thumbnail, " +
       "creator_id from content where content_format = ?::content_format_type and id = ?::uuid and is_deleted = ?";
@@ -70,6 +73,17 @@ public class AJEntityQuestion extends Model {
 
   public void setCreatorId(String creatorId) {
     setPGObject(CREATOR_ID, UUID_TYPE, creatorId);
+  }
+
+  public void setShortTitle() {
+    // FIXME: 7/2/16 This could be handled better in case of update. When updating if the existing short title is not substring of existing title,
+    // then user may not have populated it manually. In which case we do not apply the get substring of new title rule. However, when user created
+    // short title, it must be based on title, ergo, if user is changing title they should change short title as well, else system will change it
+    // for them
+    String shortTitle = this.getString(AJEntityQuestion.SHORT_TITLE);
+    if (shortTitle == null || shortTitle.isEmpty()) {
+      this.setString(AJEntityQuestion.SHORT_TITLE, this.getString(AJEntityQuestion.TITLE).substring(0, 49));
+    }
   }
 
   // NOTE:

@@ -93,6 +93,7 @@ class CreateQuestionHandler implements DBHandler {
     this.question.setModifierId(context.userId());
     this.question.setCreatorId(context.userId());
     this.question.setContentFormatQuestion();
+    this.question.setShortTitle();
   }
 
   private JsonObject getModelErrors() {
