@@ -93,17 +93,20 @@ public class AJEntityQuestion extends Model {
   // NOTE:
   // We do not deal with nested objects, only first level ones
   // We do not check for forbidden fields, it should be done before this
-  public void setAllFromJson(JsonObject input) {
+  // The field should be present in fields array
+  public void setAllFromJson(JsonObject input, List<String> fields) {
     input.getMap().forEach((s, o) -> {
-      // Note that special UUID cases for modifier and creator should be handled internally and not via map, so we do not care
-      if (o instanceof JsonObject) {
-        this.setPGObject(s, JSONB_TYPE, o.toString());
-      } else if (o instanceof JsonArray) {
-        this.setPGObject(s, JSONB_TYPE, o.toString());
-      } else if (s != null && s.equalsIgnoreCase(CONTENT_SUBFORMAT)) {
-        setContentSubformatType((String) o);
-      } else {
-        this.set(s, o);
+      if (fields.contains(s)) {
+        // Note that special UUID cases for modifier and creator should be handled internally and not via map, so we do not care
+        if (o instanceof JsonObject) {
+          this.setPGObject(s, JSONB_TYPE, o.toString());
+        } else if (o instanceof JsonArray) {
+          this.setPGObject(s, JSONB_TYPE, o.toString());
+        } else if (s != null && s.equalsIgnoreCase(CONTENT_SUBFORMAT)) {
+          setContentSubformatType((String) o);
+        } else {
+          this.set(s, o);
+        }
       }
     });
   }

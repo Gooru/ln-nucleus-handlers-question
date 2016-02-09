@@ -72,7 +72,7 @@ class UpdateQuestionHandler implements DBHandler {
   @Override
   public ExecutionResult<MessageResponse> executeRequest() {
     // Populate the model with new values
-    this.question.setAllFromJson(this.context.request());
+    this.question.setAllFromJson(this.context.request(), AJEntityQuestion.UPDATE_QUESTION_ALLOWED_FIELDS);
     // Now override auto populate values
     autoPopulate();
     if (!this.question.isValid()) {

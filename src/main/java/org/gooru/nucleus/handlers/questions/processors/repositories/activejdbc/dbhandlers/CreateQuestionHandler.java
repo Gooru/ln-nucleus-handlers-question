@@ -56,7 +56,7 @@ class CreateQuestionHandler implements DBHandler {
 
   @Override
   public ExecutionResult<MessageResponse> executeRequest() {
-    this.question.setAllFromJson(context.request());
+    this.question.setAllFromJson(context.request(), AJEntityQuestion.INSERT_QUESTION_ALLOWED_FIELDS);
     // Now override auto populate values
     autoPopulate();
     if (this.question.hasErrors()) {
