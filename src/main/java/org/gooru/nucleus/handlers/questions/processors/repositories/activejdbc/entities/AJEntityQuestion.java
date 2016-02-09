@@ -11,12 +11,15 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  * Created by ashish on 11/1/16.
  */
 @Table("content")
 public class AJEntityQuestion extends Model {
+
+  private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
 
   // FIELDS
   public static final String COLLECTION_ID = "collection_id";
@@ -60,6 +63,7 @@ public class AJEntityQuestion extends Model {
     .asList("id", "url", "created_at", "updated_at", "creator_id", "modifier_id", "original_creator_id", "original_content_id", "publish_date",
       "narration", "content_format", "course_id", "unit_id", "lesson_id", "collection_id", "sequence_id", "is_copyright_owner", "copyright_owner",
       "info", "display_guide", "accessibility", "is_deleted");
+  public static final List<String> INSERT_QUESTION_MANDATORY_FIELDS = Arrays.asList("title", "content_subformat");
   private static final Logger LOGGER = LoggerFactory.getLogger(AJEntityQuestion.class);
   // TYPES
   private static final String UUID_TYPE = "uuid";
@@ -102,6 +106,16 @@ public class AJEntityQuestion extends Model {
         this.set(s, o);
       }
     });
+  }
+
+  public void validateMandatoryFields() {
+    for (String field : INSERT_QUESTION_MANDATORY_FIELDS) {
+      Object value = this.get(field);
+      if (value == null || value.toString().isEmpty()) {
+        LOGGER.debug("Creation payload '{}' not allowed to have null or be empty");
+        this.errors().put(field, RESOURCE_BUNDLE.getString("missing.mandatory.field"));
+      }
+    }
   }
 
   public void setContentFormatQuestion() {

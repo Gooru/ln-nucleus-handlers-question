@@ -35,13 +35,13 @@ class CreateQuestionHandler implements DBHandler {
       return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(RESOURCE_BUNDLE.getString("empty.payload")),
         ExecutionResult.ExecutionStatus.FAILED);
     }
-    JsonObject errors = validateForbiddenFields();
-    if (errors != null && !errors.isEmpty()) {
-      return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(errors), ExecutionResult.ExecutionStatus.FAILED);
-    }
     if (context.userId() == null || context.userId().isEmpty() || context.userId().equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
       return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("anonymous.user")),
         ExecutionResult.ExecutionStatus.FAILED);
+    }
+    JsonObject errors = validateForbiddenFields();
+    if (errors != null && !errors.isEmpty()) {
+      return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(errors), ExecutionResult.ExecutionStatus.FAILED);
     }
     return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
 
@@ -94,6 +94,7 @@ class CreateQuestionHandler implements DBHandler {
     this.question.setCreatorId(context.userId());
     this.question.setContentFormatQuestion();
     this.question.setShortTitle();
+    this.question.validateMandatoryFields();
   }
 
   private JsonObject getModelErrors() {
