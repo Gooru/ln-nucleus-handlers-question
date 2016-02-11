@@ -1,5 +1,6 @@
 package org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.dbhandlers;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.gooru.nucleus.handlers.questions.constants.MessageConstants;
 import org.gooru.nucleus.handlers.questions.processors.ProcessorContext;
@@ -9,10 +10,13 @@ import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
+import org.javalite.activejdbc.DBException;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -67,11 +71,34 @@ public class DeleteQuestionHandler implements DBHandler {
 
   @Override
   public ExecutionResult<MessageResponse> executeRequest() {
+    /*
+     * First try to check whether this is the only OPEN_ENDED_QUESTION in the assessment , 
+     * if so then need to update the grading from 'TEACHER' to 'SYSTEM'
+     */
+    try {
+      List assessmentQuestionList = Base.firstColumn(AJEntityQuestion.FETCH_ASSESSMENT_GRADING, this.question.get("collection_id"));
+      if (assessmentQuestionList.size() == 1) {
+        if ( assessmentQuestionList.get(0).equals(this.question.get("id"))){
+          int rows = Base.exec(AJEntityQuestion.UPDATE_ASSESSMENT_GRADING, this.question.get("collection_id"));
+          LOGGER.debug("rows - " + rows );
+          if (rows <= 0) {
+            LOGGER.warn("update of the assessment grading failed {} {}", this.question.get("collection_id"), this.question.get("id"));
+            return new ExecutionResult<>(MessageResponseFactory.createInternalErrorResponse(RESOURCE_BUNDLE.getString("store.interaction.failed")),
+                    ExecutionResult.ExecutionStatus.FAILED);        }
+        }
+      } 
+    } catch (DBException dbe){
+      LOGGER.debug(dbe.getMessage());
+      LOGGER.warn("Exception : update of the assessment grading failed {} {}", this.question.get("collection_id"), this.question.get("id"));
+      return new ExecutionResult<>(MessageResponseFactory.createInternalErrorResponse(RESOURCE_BUNDLE.getString("store.interaction.failed")),
+              ExecutionResult.ExecutionStatus.FAILED);
+    }
+    
     this.question.setModifierId(this.context.userId());
     if (this.question.hasErrors()) {
       return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()), ExecutionResult.ExecutionStatus.FAILED);
     }
-
+    
     this.question.setBoolean(AJEntityQuestion.IS_DELETED, true);
 
     if (!this.question.save()) {
@@ -124,4 +151,5 @@ public class DeleteQuestionHandler implements DBHandler {
     this.question.errors().entrySet().forEach(entry -> errors.put(entry.getKey(), entry.getValue()));
     return errors;
   }
+ 
 }

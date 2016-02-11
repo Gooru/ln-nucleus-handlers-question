@@ -34,6 +34,17 @@ public class AJEntityQuestion extends Model {
   public static final String TITLE = "title";
 
   // QUERIES & FILTERS
+  public static final String FETCH_ASSESSMENT_GRADING = 
+          "SELECT question.id FROM content question, collection collection WHERE question.collection_id = collection.id " + 
+          " AND collection.format = 'assessment' AND question.content_subformat = 'open_ended_question' AND question.content_format = 'question' " + 
+          " AND collection.grading = 'teacher' AND question.is_deleted = 'false' AND collection.is_deleted = 'false' AND question.collection_id IS NOT NULL AND question.collection_id = ?::uuid";
+  
+  public static final String UPDATE_ASSESSMENT_GRADING = 
+          "UPDATE collection SET grading = 'system' WHERE id = ?::uuid AND is_deleted = 'false'";
+          
+  public static final String OPEN_ENDED_QUESTION_FILTER =
+          "collection_id = ?::uuid and content_subformat = 'open_ended_question'::content_subformat_type and is_deleted = false";
+
   public static final String VALIDATE_EXISTS_NON_DELETED =
     "select id, creator_id, publish_date, collection_id, course_id, title, short_title from content where content_format = ?::content_format_type " +
       "and id = ?::uuid and is_deleted = ?";
@@ -43,6 +54,7 @@ public class AJEntityQuestion extends Model {
   public static final String AUTH_FILTER = "id = ?::uuid and (owner_id = ?::uuid or collaborator ?? ?);";
   // TABLES
   public static final String TABLE_COURSE = "course";
+  public static final String TABLE_QUESTION = "content";
   public static final String TABLE_COLLECTION = "collection";
   // FIELD LISTS
   public static final List<String> FETCH_QUESTION_FIELDS = Arrays
