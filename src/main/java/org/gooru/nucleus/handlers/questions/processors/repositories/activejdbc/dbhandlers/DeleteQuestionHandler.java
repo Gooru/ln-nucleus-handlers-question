@@ -76,17 +76,19 @@ public class DeleteQuestionHandler implements DBHandler {
      * if so then need to update the grading from 'TEACHER' to 'SYSTEM'
      */
     try {
-      List assessmentQuestionList = Base.firstColumn(AJEntityQuestion.FETCH_ASSESSMENT_GRADING, this.question.get("collection_id"));
-      if (assessmentQuestionList.size() == 1) {
-        if ( assessmentQuestionList.get(0).equals(this.question.get("id"))){
-          int rows = Base.exec(AJEntityQuestion.UPDATE_ASSESSMENT_GRADING, this.question.get("collection_id"));
-          LOGGER.debug("rows - " + rows );
-          if (rows <= 0) {
-            LOGGER.warn("update of the assessment grading failed {} {}", this.question.get("collection_id"), this.question.get("id"));
-            return new ExecutionResult<>(MessageResponseFactory.createInternalErrorResponse(RESOURCE_BUNDLE.getString("store.interaction.failed")),
-                    ExecutionResult.ExecutionStatus.FAILED);        }
-        }
-      } 
+      if (this.question.get("collection_id") != null ) {
+        List assessmentQuestionList = Base.firstColumn(AJEntityQuestion.FETCH_ASSESSMENT_GRADING, this.question.get("collection_id"));
+        if (assessmentQuestionList.size() == 1) {
+          if ( assessmentQuestionList.get(0).equals(this.question.get("id"))){
+            int rows = Base.exec(AJEntityQuestion.UPDATE_ASSESSMENT_GRADING, this.question.get("collection_id"));
+            LOGGER.debug("rows - " + rows );
+            if (rows <= 0) {
+              LOGGER.warn("update of the assessment grading failed {} {}", this.question.get("collection_id"), this.question.get("id"));
+              return new ExecutionResult<>(MessageResponseFactory.createInternalErrorResponse(RESOURCE_BUNDLE.getString("store.interaction.failed")),
+                      ExecutionResult.ExecutionStatus.FAILED);        }
+          }
+        } 
+      }
     } catch (DBException dbe){
       LOGGER.debug(dbe.getMessage());
       LOGGER.warn("Exception : update of the assessment grading failed {} {}", this.question.get("collection_id"), this.question.get("id"));
