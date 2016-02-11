@@ -22,6 +22,7 @@ public class AJEntityQuestion extends Model {
   private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
 
   // FIELDS
+  public static final String ID = "id";
   public static final String COLLECTION_ID = "collection_id";
   public static final String MODIFIER_ID = "modifier_id";
   public static final String IS_DELETED = "is_deleted";
@@ -33,21 +34,23 @@ public class AJEntityQuestion extends Model {
   public static final String SHORT_TITLE = "short_title";
   public static final String TITLE = "title";
 
+  public static final String OPEN_ENDED_QUESTION_SUBFORMAT = "open_ended_question";
+
   // QUERIES & FILTERS
-  public static final String FETCH_ASSESSMENT_GRADING = 
-          "SELECT question.id FROM content question, collection collection WHERE question.collection_id = collection.id " + 
-          " AND collection.format = 'assessment' AND question.content_subformat = 'open_ended_question' AND question.content_format = 'question' " + 
-          " AND collection.grading = 'teacher' AND question.is_deleted = 'false' AND collection.is_deleted = 'false' AND question.collection_id IS NOT NULL AND question.collection_id = ?::uuid";
-  
-  public static final String UPDATE_ASSESSMENT_GRADING = 
-          "UPDATE collection SET grading = 'system' WHERE id = ?::uuid AND is_deleted = 'false'";
-          
+  public static final String FETCH_ASSESSMENT_GRADING =
+    "SELECT question.id FROM content question, collection collection WHERE question.collection_id = collection.id " +
+      " AND collection.format = 'assessment' AND question.content_subformat = 'open_ended_question' AND question.content_format = 'question' " +
+      " AND collection.grading = 'teacher' AND question.is_deleted = 'false' AND collection.is_deleted = 'false' AND question.collection_id IS NOT " +
+      "NULL AND question.collection_id = ?::uuid";
+
+  public static final String UPDATE_ASSESSMENT_GRADING = "UPDATE collection SET grading = 'system' WHERE id = ?::uuid AND is_deleted = 'false'";
+
   public static final String OPEN_ENDED_QUESTION_FILTER =
-          "collection_id = ?::uuid and content_subformat = 'open_ended_question'::content_subformat_type and is_deleted = false";
+    "collection_id = ?::uuid and content_subformat = 'open_ended_question'::content_subformat_type and is_deleted = false";
 
   public static final String VALIDATE_EXISTS_NON_DELETED =
-    "select id, creator_id, publish_date, collection_id, course_id, title, short_title from content where content_format = ?::content_format_type " +
-      "and id = ?::uuid and is_deleted = ?";
+    "select id, creator_id, publish_date, collection_id, course_id, title, short_title, content_subformat from content where content_format = " +
+      "?::content_format_type and id = ?::uuid and is_deleted = ?";
   public static final String FETCH_QUESTION =
     "select id, title, short_title, publish_date, description, answer, metadata, taxonomy, depth_of_knowledge, hint_explanation_detail, thumbnail, " +
       "creator_id from content where content_format = ?::content_format_type and id = ?::uuid and is_deleted = ?";
