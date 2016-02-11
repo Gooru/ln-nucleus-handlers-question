@@ -86,7 +86,14 @@ public class AJEntityQuestion extends Model {
     // for them
     String shortTitle = this.getString(AJEntityQuestion.SHORT_TITLE);
     if (shortTitle == null || shortTitle.isEmpty()) {
-      this.setString(AJEntityQuestion.SHORT_TITLE, this.getString(AJEntityQuestion.TITLE).substring(0, 49));
+      String currentTitle = this.getString(AJEntityQuestion.TITLE);
+      if (currentTitle != null && !currentTitle.isEmpty()) {
+        if (currentTitle.length() >= 50) {
+          this.setString(AJEntityQuestion.SHORT_TITLE, currentTitle.substring(0, 50));
+        } else {
+          this.setString(AJEntityQuestion.SHORT_TITLE, currentTitle);
+        }
+      }
     }
   }
 
