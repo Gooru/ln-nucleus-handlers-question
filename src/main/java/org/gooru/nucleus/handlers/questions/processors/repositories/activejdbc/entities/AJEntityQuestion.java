@@ -79,6 +79,10 @@ public class AJEntityQuestion extends Model {
       "narration", "content_format", "course_id", "unit_id", "lesson_id", "collection_id", "sequence_id", "is_copyright_owner", "copyright_owner",
       "info", "display_guide", "accessibility", "is_deleted");
   public static final List<String> INSERT_QUESTION_MANDATORY_FIELDS = Arrays.asList("title", "content_subformat");
+
+  public static final List<String> QUESTION_TYPES = Arrays
+    .asList("multiple_choice_question", "multiple_answer_question", "true_false_question", "fill_in_the_blank_question", "open_ended_question",
+      "hot_text_reorder_question", "hot_text_highlight_question", "hot_spot_image_question", "hot_spot_text_question", "external_question");
   private static final Logger LOGGER = LoggerFactory.getLogger(AJEntityQuestion.class);
   // TYPES
   private static final String UUID_TYPE = "uuid";
@@ -148,7 +152,10 @@ public class AJEntityQuestion extends Model {
   }
 
   private void setContentSubformatType(String value) {
-    setPGObject(CONTENT_SUBFORMAT, CONTENT_SUBFORMAT_TYPE, value);
+    if (!QUESTION_TYPES.contains(value)) {
+      this.errors().put(CONTENT_SUBFORMAT,  RESOURCE_BUNDLE.getString("invalid.value"));
+    }
+    setPGObject(CONTENT_SUBFORMAT, CONTENT_SUBFORMAT_TYPE,value);
   }
 
   private void setPGObject(String field, String type, String value) {
