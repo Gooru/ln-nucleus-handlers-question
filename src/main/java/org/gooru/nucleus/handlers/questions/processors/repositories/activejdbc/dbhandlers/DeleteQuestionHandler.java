@@ -137,7 +137,6 @@ public class DeleteQuestionHandler implements DBHandler {
       if (assessmentId != null) {
         List assessmentQuestionList = Base.firstColumn(AJEntityQuestion.FETCH_ASSESSMENT_GRADING, assessmentId);
         if (assessmentQuestionList.size() == 1) {
-          // if (assessmentQuestionList.get(0).equals(this.question.get(AJEntityQuestion.ID))) {
           if (assessmentQuestionList.get(0).toString().equals(context.questionId())) {
             int rows = Base.exec(AJEntityQuestion.UPDATE_ASSESSMENT_GRADING, assessmentId);
             if (rows != 1) {
@@ -149,8 +148,7 @@ public class DeleteQuestionHandler implements DBHandler {
         }
       }
     } catch (DBException dbe) {
-      LOGGER.debug(dbe.getMessage());
-      LOGGER.warn("Update of the assessment grading failed for assessment '{}' with question '{}'", assessmentId, context.questionId());
+      LOGGER.warn("Update of the assessment grading failed for assessment '{}' with question '{}'", assessmentId, context.questionId(), dbe);
       return new ExecutionResult<>(MessageResponseFactory.createInternalErrorResponse(RESOURCE_BUNDLE.getString("store.interaction.failed")),
         ExecutionResult.ExecutionStatus.FAILED);
     }
