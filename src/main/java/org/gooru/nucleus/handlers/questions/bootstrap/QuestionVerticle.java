@@ -8,6 +8,7 @@ import org.gooru.nucleus.handlers.questions.bootstrap.shutdown.Finalizer;
 import org.gooru.nucleus.handlers.questions.bootstrap.shutdown.Finalizers;
 import org.gooru.nucleus.handlers.questions.bootstrap.startup.Initializer;
 import org.gooru.nucleus.handlers.questions.bootstrap.startup.Initializers;
+import org.gooru.nucleus.handlers.questions.constants.MessageConstants;
 import org.gooru.nucleus.handlers.questions.constants.MessagebusEndpoints;
 import org.gooru.nucleus.handlers.questions.processors.ProcessorBuilder;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
@@ -49,9 +50,14 @@ public class QuestionVerticle extends AbstractVerticle {
 
         JsonObject eventData = result.event();
         if (eventData != null) {
+          String sessionToken = ((JsonObject) message.body()).getString(MessageConstants.MSG_HEADER_TOKEN);
+          if (sessionToken != null && !sessionToken.isEmpty()) {
+            eventData.put(MessageConstants.MSG_HEADER_TOKEN, sessionToken);
+          } else {
+            LOGGER.warn("Invalid session token received");
+          }
           eb.publish(MessagebusEndpoints.MBEP_EVENT, eventData);
         }
-
       });
 
 
