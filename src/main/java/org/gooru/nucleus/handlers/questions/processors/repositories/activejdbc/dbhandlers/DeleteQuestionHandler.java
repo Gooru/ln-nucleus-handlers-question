@@ -154,7 +154,7 @@ public class DeleteQuestionHandler implements DBHandler {
           }
         }
       }
-      if (!assessmentTimestampUpdated) {
+      if (assessmentId != null && !assessmentTimestampUpdated) {
         // Need to update the container update time
         int rows = Base.exec(AJEntityQuestion.UPDATE_CONTAINER_TIMESTAMP, assessmentId);
         if (rows != 1) {
