@@ -133,18 +133,34 @@ public class DeleteQuestionHandler implements DBHandler {
 
   private ExecutionResult<MessageResponse> adjustAssessmentGrading() {
     Object assessmentId = this.question.get(AJEntityQuestion.COLLECTION_ID);
+    boolean assessmentTimestampUpdated = false;
     try {
       if (assessmentId != null) {
-        List assessmentQuestionList = Base.firstColumn(AJEntityQuestion.FETCH_ASSESSMENT_GRADING, assessmentId);
-        if (assessmentQuestionList.size() == 1) {
-          if (assessmentQuestionList.get(0).toString().equals(context.questionId())) {
-            int rows = Base.exec(AJEntityQuestion.UPDATE_ASSESSMENT_GRADING, assessmentId);
-            if (rows != 1) {
-              LOGGER.warn("update of the assessment grading failed for assessment '{}' with question '{}'", assessmentId, context.questionId());
-              return new ExecutionResult<>(MessageResponseFactory.createInternalErrorResponse(RESOURCE_BUNDLE.getString("store.interaction.failed")),
-                ExecutionResult.ExecutionStatus.FAILED);
+        Object countObject = Base.firstCell(AJEntityQuestion.IS_VALID_ASSESSMENT, assessmentId);
+        Long count = Long.valueOf(String.valueOf(countObject));
+        if (count > 0) {
+          List assessmentQuestionList = Base.firstColumn(AJEntityQuestion.FETCH_ASSESSMENT_GRADING, assessmentId);
+          if (assessmentQuestionList.size() == 1) {
+            if (assessmentQuestionList.get(0).toString().equals(context.questionId())) {
+              int rows = Base.exec(AJEntityQuestion.UPDATE_ASSESSMENT_GRADING, assessmentId);
+              if (rows != 1) {
+                LOGGER.warn("update of the assessment grading failed for assessment '{}' with question '{}'", assessmentId, context.questionId());
+                return new ExecutionResult<>(
+                  MessageResponseFactory.createInternalErrorResponse(RESOURCE_BUNDLE.getString("store.interaction.failed")),
+                  ExecutionResult.ExecutionStatus.FAILED);
+              }
+              assessmentTimestampUpdated = true;
             }
           }
+        }
+      }
+      if (!assessmentTimestampUpdated) {
+        // Need to update the container update time
+        int rows = Base.exec(AJEntityQuestion.UPDATE_CONTAINER_TIMESTAMP, assessmentId);
+        if (rows != 1) {
+          LOGGER.warn("update of the assessment timestamp failed for assessment '{}' with question '{}'", assessmentId, context.questionId());
+          return new ExecutionResult<>(MessageResponseFactory.createInternalErrorResponse(RESOURCE_BUNDLE.getString("store.interaction.failed")),
+            ExecutionResult.ExecutionStatus.FAILED);
         }
       }
     } catch (DBException dbe) {

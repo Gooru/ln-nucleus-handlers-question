@@ -43,8 +43,10 @@ public class AJEntityQuestion extends Model {
       " AND collection.grading = 'teacher' AND question.is_deleted = 'false' AND collection.is_deleted = 'false' AND question.collection_id IS NOT " +
       "NULL AND question.collection_id = ?::uuid";
 
+  public static final String IS_VALID_ASSESSMENT =
+    "select count(id) from collection where id = ?::uuid and format = 'assessment'::content_container_type and is_deleted = false";
   public static final String UPDATE_ASSESSMENT_GRADING = "UPDATE collection SET grading = 'system' WHERE id = ?::uuid AND is_deleted = 'false'";
-
+  public static final String UPDATE_CONTAINER_TIMESTAMP = "update collection set updated_at = now() where id = ?::uuid and is_deleted = 'false'";
   public static final String OPEN_ENDED_QUESTION_FILTER =
     "collection_id = ?::uuid and content_subformat = 'open_ended_question'::content_subformat_type and is_deleted = false";
 
@@ -153,9 +155,9 @@ public class AJEntityQuestion extends Model {
 
   private void setContentSubformatType(String value) {
     if (!QUESTION_TYPES.contains(value)) {
-      this.errors().put(CONTENT_SUBFORMAT,  RESOURCE_BUNDLE.getString("invalid.value"));
+      this.errors().put(CONTENT_SUBFORMAT, RESOURCE_BUNDLE.getString("invalid.value"));
     }
-    setPGObject(CONTENT_SUBFORMAT, CONTENT_SUBFORMAT_TYPE,value);
+    setPGObject(CONTENT_SUBFORMAT, CONTENT_SUBFORMAT_TYPE, value);
   }
 
   private void setPGObject(String field, String type, String value) {
