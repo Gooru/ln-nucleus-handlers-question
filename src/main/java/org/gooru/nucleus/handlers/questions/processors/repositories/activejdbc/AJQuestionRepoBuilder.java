@@ -8,11 +8,11 @@ import org.gooru.nucleus.handlers.questions.processors.repositories.QuestionRepo
  */
 public final class AJQuestionRepoBuilder {
 
-  private AJQuestionRepoBuilder() {
-    throw new AssertionError();
-  }
+    private AJQuestionRepoBuilder() {
+        throw new AssertionError();
+    }
 
-  public static QuestionRepo buildQuestionRepo(ProcessorContext context) {
-    return new AJQuestionRepo(context);
-  }
+    public static QuestionRepo buildQuestionRepo(ProcessorContext context) {
+        return new AJQuestionRepo(context);
+    }
 }

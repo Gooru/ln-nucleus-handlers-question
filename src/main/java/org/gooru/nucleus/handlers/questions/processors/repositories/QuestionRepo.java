@@ -6,11 +6,11 @@ import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse
  * Created by ashish on 11/1/16.
  */
 public interface QuestionRepo {
-  MessageResponse updateQuestion();
+    MessageResponse updateQuestion();
 
-  MessageResponse fetchQuestion();
+    MessageResponse fetchQuestion();
 
-  MessageResponse createQuestion();
+    MessageResponse createQuestion();
 
-  MessageResponse deleteQuestion();
+    MessageResponse deleteQuestion();
 }
