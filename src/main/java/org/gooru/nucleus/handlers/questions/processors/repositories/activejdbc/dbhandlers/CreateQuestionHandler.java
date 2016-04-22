@@ -5,6 +5,7 @@ import java.util.ResourceBundle;
 import org.gooru.nucleus.handlers.questions.constants.MessageConstants;
 import org.gooru.nucleus.handlers.questions.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.questions.processors.events.EventBuilderFactory;
+import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.dbutils.LicenseUtil;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.entities.AJEntityQuestion;
 import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
@@ -31,20 +32,20 @@ class CreateQuestionHandler implements DBHandler {
     @Override
     public ExecutionResult<MessageResponse> checkSanity() {
         // There should be a question id present
-        if (context.request() == null || context.request().isEmpty()) {
+        if ((context.request() == null) || context.request().isEmpty()) {
             LOGGER.warn("Invalid request payload");
             return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse(RESOURCE_BUNDLE.getString("empty.payload")),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
-        if (context.userId() == null || context.userId().isEmpty()
+        if ((context.userId() == null) || context.userId().isEmpty()
             || context.userId().equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
             return new ExecutionResult<>(
                 MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("anonymous.user")),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
         JsonObject errors = validateForbiddenFields();
-        if (errors != null && !errors.isEmpty()) {
+        if ((errors != null) && !errors.isEmpty()) {
             return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(errors),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
@@ -54,34 +55,34 @@ class CreateQuestionHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
-        this.question = new AJEntityQuestion();
+        question = new AJEntityQuestion();
 
         return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
     }
 
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-        this.question.setAllFromJson(context.request(), AJEntityQuestion.INSERT_QUESTION_ALLOWED_FIELDS);
+        question.setAllFromJson(context.request(), AJEntityQuestion.INSERT_QUESTION_ALLOWED_FIELDS);
         // Now override auto populate values
         autoPopulate();
-        if (this.question.hasErrors()) {
+        if (question.hasErrors()) {
             return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
-        if (!this.question.isValid()) {
+        if (!question.isValid()) {
             LOGGER.debug("Validation errors");
             return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
 
-        if (!this.question.save()) {
+        if (!question.save()) {
             LOGGER.debug("Save errors");
             return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
         return new ExecutionResult<>(
-            MessageResponseFactory.createCreatedResponse(this.question.getId().toString(),
-                EventBuilderFactory.getCreateQuestionEventBuilder(this.question.getId().toString())),
+            MessageResponseFactory.createCreatedResponse(question.getId().toString(),
+                EventBuilderFactory.getCreateQuestionEventBuilder(question.getId().toString())),
             ExecutionResult.ExecutionStatus.SUCCESSFUL);
     }
 
@@ -100,16 +101,17 @@ class CreateQuestionHandler implements DBHandler {
     }
 
     private void autoPopulate() {
-        this.question.setModifierId(context.userId());
-        this.question.setCreatorId(context.userId());
-        this.question.setContentFormatQuestion();
-        this.question.setShortTitle();
-        this.question.validateMandatoryFields();
+        question.setModifierId(context.userId());
+        question.setCreatorId(context.userId());
+        question.setContentFormatQuestion();
+        question.setShortTitle();
+        question.validateMandatoryFields();
+        question.setLicense(LicenseUtil.getDefaultLicenseCode());
     }
 
     private JsonObject getModelErrors() {
         JsonObject errors = new JsonObject();
-        this.question.errors().entrySet().forEach(entry -> errors.put(entry.getKey(), entry.getValue()));
+        question.errors().entrySet().forEach(entry -> errors.put(entry.getKey(), entry.getValue()));
         return errors;
     }
 

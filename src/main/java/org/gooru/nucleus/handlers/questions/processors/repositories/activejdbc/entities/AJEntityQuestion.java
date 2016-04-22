@@ -34,6 +34,7 @@ public class AJEntityQuestion extends Model {
     public static final String CONTENT_SUBFORMAT = "content_subformat";
     public static final String SHORT_TITLE = "short_title";
     public static final String TITLE = "title";
+    public static final String LICENSE = "license";
 
     public static final String OPEN_ENDED_QUESTION_SUBFORMAT = "open_ended_question";
 
@@ -58,7 +59,7 @@ public class AJEntityQuestion extends Model {
             + "?::content_format_type and id = ?::uuid and is_deleted = ?";
     public static final String FETCH_QUESTION =
         "select id, title, short_title, publish_date, description, answer, metadata, taxonomy, depth_of_knowledge, hint_explanation_detail, thumbnail, "
-            + "creator_id from content where content_format = ?::content_format_type and id = ?::uuid and is_deleted = ?";
+            + "license, creator_id from content where content_format = ?::content_format_type and id = ?::uuid and is_deleted = ?";
     public static final String AUTH_FILTER = "id = ?::uuid and (owner_id = ?::uuid or collaborator ?? ?);";
     // TABLES
     public static final String TABLE_COURSE = "course";
@@ -67,7 +68,7 @@ public class AJEntityQuestion extends Model {
     // FIELD LISTS
     public static final List<String> FETCH_QUESTION_FIELDS =
         Arrays.asList("id", "title", "short_title", "publish_date", "description", "answer", "metadata", "taxonomy",
-            "depth_of_knowledge", "hint_explanation_detail", "thumbnail", "creator_id");
+            "depth_of_knowledge", "hint_explanation_detail", "thumbnail", "license", "creator_id");
     // What fields are allowed in request payload. Note this does not include
     // the auto populate fields
     public static final List<String> INSERT_QUESTION_ALLOWED_FIELDS =
@@ -115,10 +116,10 @@ public class AJEntityQuestion extends Model {
         // title they should change short title as well, else system will change
         // it
         // for them
-        String shortTitle = this.getString(AJEntityQuestion.SHORT_TITLE);
-        if (shortTitle == null || shortTitle.isEmpty()) {
-            String currentTitle = this.getString(AJEntityQuestion.TITLE);
-            if (currentTitle != null && !currentTitle.isEmpty()) {
+        String shortTitle = getString(AJEntityQuestion.SHORT_TITLE);
+        if ((shortTitle == null) || shortTitle.isEmpty()) {
+            String currentTitle = getString(AJEntityQuestion.TITLE);
+            if ((currentTitle != null) && !currentTitle.isEmpty()) {
                 if (currentTitle.length() >= 50) {
                     this.setString(AJEntityQuestion.SHORT_TITLE, currentTitle.substring(0, 50));
                 } else {
@@ -138,10 +139,10 @@ public class AJEntityQuestion extends Model {
                 // Note that special UUID cases for modifier and creator should
                 // be handled internally and not via map, so we do not care
                 if (o instanceof JsonObject) {
-                    this.setPGObject(s, JSONB_TYPE, o.toString());
+                    setPGObject(s, JSONB_TYPE, o.toString());
                 } else if (o instanceof JsonArray) {
-                    this.setPGObject(s, JSONB_TYPE, o.toString());
-                } else if (s != null && s.equalsIgnoreCase(CONTENT_SUBFORMAT)) {
+                    setPGObject(s, JSONB_TYPE, o.toString());
+                } else if ((s != null) && s.equalsIgnoreCase(CONTENT_SUBFORMAT)) {
                     setContentSubformatType((String) o);
                 } else {
                     this.set(s, o);
@@ -153,7 +154,7 @@ public class AJEntityQuestion extends Model {
     public void validateMandatoryFields() {
         for (String field : INSERT_QUESTION_MANDATORY_FIELDS) {
             Object value = this.get(field);
-            if (value == null || value.toString().isEmpty()) {
+            if ((value == null) || value.toString().isEmpty()) {
                 LOGGER.debug("Creation payload '{}' not allowed to have null or be empty");
                 this.errors().put(field, RESOURCE_BUNDLE.getString("missing.mandatory.field"));
             }
@@ -162,6 +163,10 @@ public class AJEntityQuestion extends Model {
 
     public void setContentFormatQuestion() {
         setPGObject(CONTENT_FORMAT, CONTENT_FORMAT_TYPE, QUESTION);
+    }
+
+    public void setLicense(Integer code) {
+        this.set(LICENSE, code);
     }
 
     private void setContentSubformatType(String value) {
