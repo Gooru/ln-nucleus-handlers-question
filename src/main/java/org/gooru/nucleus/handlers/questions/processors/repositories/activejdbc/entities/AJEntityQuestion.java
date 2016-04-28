@@ -61,7 +61,7 @@ public class AJEntityQuestion extends Model {
         "select id, creator_id, publish_date, collection_id, course_id, title, short_title, content_subformat from "
             + "content where content_format = " + "?::content_format_type and id = ?::uuid and is_deleted = ?";
     public static final String FETCH_QUESTION =
-        "select id, title, short_title, publish_date, description, answer, metadata, taxonomy, depth_of_knowledge, "
+        "select id, title, short_title, publish_date, description, answer, metadata, taxonomy, "
             + "hint_explanation_detail, thumbnail, "
             + "license, creator_id, content_subformat, visible_on_profile from "
             + "content where content_format = ?::content_format_type and id = ?::uuid and is_deleted = ?";
@@ -72,15 +72,15 @@ public class AJEntityQuestion extends Model {
     public static final String TABLE_COLLECTION = "collection";
     // FIELD LISTS
     public static final List<String> FETCH_QUESTION_FIELDS = Arrays.asList("id", "title", "short_title", "publish_date",
-        "description", "answer", "metadata", "taxonomy", "depth_of_knowledge", "hint_explanation_detail", "thumbnail",
+        "description", "answer", "metadata", "taxonomy", "hint_explanation_detail", "thumbnail",
         "license", "creator_id", "content_subformat", "visible_on_profile");
     // What fields are allowed in request payload. Note this does not include
     // the auto populate fields
     public static final List<String> INSERT_QUESTION_ALLOWED_FIELDS =
         Arrays.asList("title", "description", "short_title", "content_subformat", "answer", "metadata", "taxonomy",
-            "depth_of_knowledge", "hint_explanation_detail", "thumbnail", "visible_on_profile");
+            "hint_explanation_detail", "thumbnail", "visible_on_profile");
     public static final List<String> UPDATE_QUESTION_ALLOWED_FIELDS =
-        Arrays.asList("title", "description", "short_title", "answer", "metadata", "taxonomy", "depth_of_knowledge",
+        Arrays.asList("title", "description", "short_title", "answer", "metadata", "taxonomy",
             "hint_explanation_detail", "thumbnail", "visible_on_profile");
     public static final List<String> UPDATE_QUESTION_FORBIDDEN_FIELDS = Arrays.asList("id", "url", "created_at",
         "updated_at", "creator_id", "modifier_id", "original_creator_id", "original_content_id", "publish_date",
