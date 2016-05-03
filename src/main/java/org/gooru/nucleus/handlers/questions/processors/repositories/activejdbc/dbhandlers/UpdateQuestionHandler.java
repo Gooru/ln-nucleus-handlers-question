@@ -153,7 +153,6 @@ class UpdateQuestionHandler implements DBHandler {
 
     private void autoPopulate() {
         this.question.setModifierId(this.context.userId());
-        this.question.setShortTitle();
     }
 
     private JsonObject getModelErrors() {

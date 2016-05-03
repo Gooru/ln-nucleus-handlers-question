@@ -104,7 +104,6 @@ class CreateQuestionHandler implements DBHandler {
         question.setModifierId(context.userId());
         question.setCreatorId(context.userId());
         question.setContentFormatQuestion();
-        question.setShortTitle();
         question.validateMandatoryFields();
         question.setLicense(LicenseUtil.getDefaultLicenseCode());
     }

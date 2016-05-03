@@ -32,7 +32,6 @@ public class AJEntityQuestion extends Model {
     public static final String CREATOR_ID = "creator_id";
     public static final String CONTENT_FORMAT = "content_format";
     public static final String CONTENT_SUBFORMAT = "content_subformat";
-    public static final String SHORT_TITLE = "short_title";
     public static final String TITLE = "title";
     public static final String LICENSE = "license";
 
@@ -58,10 +57,10 @@ public class AJEntityQuestion extends Model {
             + "is_deleted = false";
 
     public static final String VALIDATE_EXISTS_NON_DELETED =
-        "select id, creator_id, publish_date, collection_id, course_id, title, short_title, content_subformat from "
+        "select id, creator_id, publish_date, collection_id, course_id, title, content_subformat from "
             + "content where content_format = " + "?::content_format_type and id = ?::uuid and is_deleted = ?";
     public static final String FETCH_QUESTION =
-        "select id, title, short_title, publish_date, description, answer, metadata, taxonomy, "
+        "select id, title, publish_date, description, answer, metadata, taxonomy, "
             + "hint_explanation_detail, thumbnail, "
             + "license, creator_id, content_subformat, visible_on_profile from "
             + "content where content_format = ?::content_format_type and id = ?::uuid and is_deleted = ?";
@@ -71,16 +70,16 @@ public class AJEntityQuestion extends Model {
     public static final String TABLE_QUESTION = "content";
     public static final String TABLE_COLLECTION = "collection";
     // FIELD LISTS
-    public static final List<String> FETCH_QUESTION_FIELDS = Arrays.asList("id", "title", "short_title", "publish_date",
+    public static final List<String> FETCH_QUESTION_FIELDS = Arrays.asList("id", "title", "publish_date",
         "description", "answer", "metadata", "taxonomy", "hint_explanation_detail", "thumbnail",
         "license", "creator_id", "content_subformat", "visible_on_profile");
     // What fields are allowed in request payload. Note this does not include
     // the auto populate fields
     public static final List<String> INSERT_QUESTION_ALLOWED_FIELDS =
-        Arrays.asList("title", "description", "short_title", "content_subformat", "answer", "metadata", "taxonomy",
+        Arrays.asList("title", "description", "content_subformat", "answer", "metadata", "taxonomy",
             "hint_explanation_detail", "thumbnail", "visible_on_profile");
     public static final List<String> UPDATE_QUESTION_ALLOWED_FIELDS =
-        Arrays.asList("title", "description", "short_title", "answer", "metadata", "taxonomy",
+        Arrays.asList("title", "description", "answer", "metadata", "taxonomy",
             "hint_explanation_detail", "thumbnail", "visible_on_profile");
     public static final List<String> UPDATE_QUESTION_FORBIDDEN_FIELDS = Arrays.asList("id", "url", "created_at",
         "updated_at", "creator_id", "modifier_id", "original_creator_id", "original_content_id", "publish_date",
@@ -109,29 +108,6 @@ public class AJEntityQuestion extends Model {
 
     public void setCreatorId(String creatorId) {
         setPGObject(CREATOR_ID, UUID_TYPE, creatorId);
-    }
-
-    public void setShortTitle() {
-        // FIXME: 7/2/16 This could be handled better in case of update. When
-        // updating if the existing short title is not substring of existing
-        // title,
-        // then user may not have populated it manually. In which case we do not
-        // apply the get substring of new title rule. However, when user created
-        // short title, it must be based on title, ergo, if user is changing
-        // title they should change short title as well, else system will change
-        // it
-        // for them
-        String shortTitle = getString(AJEntityQuestion.SHORT_TITLE);
-        if ((shortTitle == null) || shortTitle.isEmpty()) {
-            String currentTitle = getString(AJEntityQuestion.TITLE);
-            if ((currentTitle != null) && !currentTitle.isEmpty()) {
-                if (currentTitle.length() >= 50) {
-                    this.setString(AJEntityQuestion.SHORT_TITLE, currentTitle.substring(0, 50));
-                } else {
-                    this.setString(AJEntityQuestion.SHORT_TITLE, currentTitle);
-                }
-            }
-        }
     }
 
     // NOTE:
