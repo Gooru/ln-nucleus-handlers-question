@@ -89,7 +89,8 @@ public class AJEntityQuestion extends Model {
         "updated_at", "creator_id", "modifier_id", "original_creator_id", "original_content_id", "publish_date",
         "narration", "content_format", "course_id", "unit_id", "lesson_id", "collection_id", "sequence_id",
         "is_copyright_owner", "copyright_owner", "info", "display_guide", "accessibility", "is_deleted");
-    public static final List<String> INSERT_QUESTION_MANDATORY_FIELDS = Arrays.asList("title", "content_subformat");
+    public static final List<String> INSERT_QUESTION_MANDATORY_FIELDS = Arrays.asList("title", "description",
+        "content_subformat");
 
     public static final List<String> QUESTION_TYPES =
         Arrays.asList("multiple_choice_question", "multiple_answer_question", "true_false_question",
