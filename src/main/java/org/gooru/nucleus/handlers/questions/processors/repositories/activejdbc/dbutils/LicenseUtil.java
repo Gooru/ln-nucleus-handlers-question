@@ -8,8 +8,7 @@ import org.slf4j.LoggerFactory;
 public final class LicenseUtil {
 
     private static Integer defaultLicenseCode;
-    // TODO: Need to provide a proper value here
-    private static final String defaultLicenseLabel = "CCNA";
+    private static final String defaultLicenseLabel = "Public Domain";
 
     private LicenseUtil() {
         throw new AssertionError();
@@ -37,6 +36,7 @@ public final class LicenseUtil {
             defaultLicenseCode = Integer.parseInt(result.toString());
         } catch (Throwable e) {
             LOGGER.error("Caught exception while fetching default license value", e);
+            throw new IllegalStateException(e);
         } finally {
             Base.close();
         }
