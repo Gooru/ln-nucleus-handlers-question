@@ -80,10 +80,10 @@ public class AJEntityQuestion extends Model {
             "hint_explanation_detail", "thumbnail", "visible_on_profile");
     public static final List<String> UPDATE_QUESTION_ALLOWED_FIELDS =
         Arrays.asList("title", "description", "answer", "metadata", "taxonomy",
-            "hint_explanation_detail", "thumbnail", "visible_on_profile");
+            "hint_explanation_detail", "thumbnail", "visible_on_profile", "narration");
     public static final List<String> UPDATE_QUESTION_FORBIDDEN_FIELDS = Arrays.asList("id", "url", "created_at",
         "updated_at", "creator_id", "modifier_id", "original_creator_id", "original_content_id", "publish_date",
-        "narration", "content_format", "content_subformat", "course_id", "unit_id", "lesson_id", "collection_id",
+        "content_format", "content_subformat", "course_id", "unit_id", "lesson_id", "collection_id",
         "sequence_id", "is_copyright_owner", "copyright_owner", "info", "display_guide", "accessibility", "is_deleted");
     public static final List<String> INSERT_QUESTION_FORBIDDEN_FIELDS = Arrays.asList("id", "url", "created_at",
         "updated_at", "creator_id", "modifier_id", "original_creator_id", "original_content_id", "publish_date",
