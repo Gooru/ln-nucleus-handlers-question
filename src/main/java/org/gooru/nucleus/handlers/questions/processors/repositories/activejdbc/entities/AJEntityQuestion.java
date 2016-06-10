@@ -34,6 +34,7 @@ public class AJEntityQuestion extends Model {
     public static final String CONTENT_SUBFORMAT = "content_subformat";
     public static final String TITLE = "title";
     public static final String LICENSE = "license";
+    public static final String NARRATION = "narration";
 
     public static final String OPEN_ENDED_QUESTION_SUBFORMAT = "open_ended_question";
 
@@ -61,7 +62,7 @@ public class AJEntityQuestion extends Model {
             + "content where content_format = " + "?::content_format_type and id = ?::uuid and is_deleted = ?";
     public static final String FETCH_QUESTION =
         "select id, title, publish_date, description, answer, metadata, taxonomy, "
-            + "hint_explanation_detail, thumbnail, "
+            + "hint_explanation_detail, thumbnail, narration, "
             + "license, creator_id, content_subformat, visible_on_profile from "
             + "content where content_format = ?::content_format_type and id = ?::uuid and is_deleted = ?";
     public static final String AUTH_FILTER = "id = ?::uuid and (owner_id = ?::uuid or collaborator ?? ?);";
@@ -72,7 +73,7 @@ public class AJEntityQuestion extends Model {
     // FIELD LISTS
     public static final List<String> FETCH_QUESTION_FIELDS = Arrays.asList("id", "title", "publish_date",
         "description", "answer", "metadata", "taxonomy", "hint_explanation_detail", "thumbnail",
-        "license", "creator_id", "content_subformat", "visible_on_profile");
+        "license", "creator_id", "content_subformat", "visible_on_profile", "narration");
     // What fields are allowed in request payload. Note this does not include
     // the auto populate fields
     public static final List<String> INSERT_QUESTION_ALLOWED_FIELDS =
