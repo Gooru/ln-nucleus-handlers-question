@@ -68,29 +68,16 @@ public class AJEntityQuestion extends Model {
         "select id, creator_id, publish_date, collection_id, course_id, title, content_subformat from "
             + "content where content_format = " + "?::content_format_type and id = ?::uuid and is_deleted = ?";
     public static final String FETCH_QUESTION =
-        "select id, title, publish_date, description, answer, metadata, taxonomy, "
-            + "hint_explanation_detail, thumbnail, narration, "
-            + "license, creator_id, content_subformat, visible_on_profile from "
-            + "content where content_format = ?::content_format_type and id = ?::uuid and is_deleted = ?";
+        "select id, title, publish_date, description, answer, metadata, taxonomy, hint_explanation_detail, thumbnail,"
+            + " narration, license, creator_id, content_subformat, visible_on_profile, course_id, unit_id, lesson_id,"
+            + " collection_id from content where content_format = ?::content_format_type and id = ?::uuid and "
+            + "is_deleted = ?";
     public static final String AUTH_FILTER = "id = ?::uuid and (owner_id = ?::uuid or collaborator ?? ?);";
 
     // TABLES
     public static final String TABLE_COURSE = "course";
     public static final String TABLE_QUESTION = "content";
     public static final String TABLE_COLLECTION = "collection";
-
-    // FIELD LISTS
-    public static final List<String> FETCH_QUESTION_FIELDS = Arrays
-        .asList(ID, TITLE, PUBLISH_DATE, DESCRIPTION, ANSWER, METADATA, TAXONOMY, HINT_EXPLANATION_DETAIL, THUMBNAIL,
-            LICENSE, CREATOR_ID, CONTENT_SUBFORMAT, VISIBLE_ON_PROFILE, NARRATION);
-
-    // What fields are allowed in request payload. Note this does not include the auto populate fields
-    private static final List<String> INSERT_QUESTION_ALLOWED_FIELDS = Arrays
-        .asList(TITLE, DESCRIPTION, CONTENT_SUBFORMAT, ANSWER, METADATA, TAXONOMY, NARRATION, HINT_EXPLANATION_DETAIL,
-            THUMBNAIL, VISIBLE_ON_PROFILE);
-    private static final List<String> UPDATE_QUESTION_ALLOWED_FIELDS = Arrays
-        .asList(TITLE, DESCRIPTION, ANSWER, METADATA, TAXONOMY, HINT_EXPLANATION_DETAIL, THUMBNAIL, VISIBLE_ON_PROFILE,
-            NARRATION);
 
     private static final String ORIGINAL_CREATOR_ID = "original_creator_id";
     private static final String ORIGINAL_CONTENT_ID = "original_content_id";
@@ -105,6 +92,20 @@ public class AJEntityQuestion extends Model {
     private static final String INFO = "info";
     private static final String DISPLAY_GUIDE = "display_guide";
     private static final String ACCESSIBILITY = "accessibility";
+
+    // FIELD LISTS
+    public static final List<String> FETCH_QUESTION_FIELDS = Arrays
+        .asList(ID, TITLE, PUBLISH_DATE, DESCRIPTION, ANSWER, METADATA, TAXONOMY, HINT_EXPLANATION_DETAIL, THUMBNAIL,
+            NARRATION, LICENSE, CREATOR_ID, CONTENT_SUBFORMAT, VISIBLE_ON_PROFILE, COURSE_ID, UNIT_ID, LESSON_ID,
+            COLLECTION_ID);
+
+    // What fields are allowed in request payload. Note this does not include the auto populate fields
+    private static final List<String> INSERT_QUESTION_ALLOWED_FIELDS = Arrays
+        .asList(TITLE, DESCRIPTION, CONTENT_SUBFORMAT, ANSWER, METADATA, TAXONOMY, NARRATION, HINT_EXPLANATION_DETAIL,
+            THUMBNAIL, VISIBLE_ON_PROFILE);
+    private static final List<String> UPDATE_QUESTION_ALLOWED_FIELDS = Arrays
+        .asList(TITLE, DESCRIPTION, ANSWER, METADATA, TAXONOMY, HINT_EXPLANATION_DETAIL, THUMBNAIL, VISIBLE_ON_PROFILE,
+            NARRATION);
 
     public static final List<String> INSERT_QUESTION_FORBIDDEN_FIELDS = Arrays
         .asList(ID, URL, CREATED_AT, UPDATED_AT, CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_CONTENT_ID,
