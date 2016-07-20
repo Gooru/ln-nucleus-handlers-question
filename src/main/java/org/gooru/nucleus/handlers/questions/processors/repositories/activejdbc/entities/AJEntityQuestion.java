@@ -159,7 +159,7 @@ public class AJEntityQuestion extends Model {
         validatorMap.put(ANSWER, FieldValidator::validateJsonArrayIfPresent);
         validatorMap.put(METADATA, FieldValidator::validateJsonIfPresent);
         validatorMap.put(TAXONOMY, FieldValidator::validateJsonIfPresent);
-        validatorMap.put(NARRATION, (value) -> FieldValidator.validateString(value, 5000));
+        validatorMap.put(NARRATION, (value) -> FieldValidator.validateStringIfPresent(value, 5000));
         validatorMap.put(HINT_EXPLANATION_DETAIL, FieldValidator::validateJsonIfPresent);
         validatorMap.put(THUMBNAIL, (value) -> FieldValidator.validateStringIfPresent(value, 2000));
         validatorMap.put(VISIBLE_ON_PROFILE, FieldValidator::validateBooleanIfPresent);
