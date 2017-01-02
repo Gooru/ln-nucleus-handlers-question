@@ -1,5 +1,6 @@
 package org.gooru.nucleus.handlers.questions.processors;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -7,13 +8,14 @@ import io.vertx.core.json.JsonObject;
  */
 public class ProcessorContext {
 
-    final private String userId;
-    final private JsonObject prefs;
-    final private JsonObject request;
-    final private String questionId;
+    private final String userId;
+    private final JsonObject prefs;
+    private final JsonObject request;
+    private final String questionId;
+    private final MultiMap requestHeaders;
 
-    public ProcessorContext(String userId, JsonObject prefs, JsonObject request, String questionId) {
-        if (prefs == null || userId == null || prefs.isEmpty()) {
+    public ProcessorContext(String userId, JsonObject prefs, JsonObject request, String questionId, MultiMap headers) {
+        if (prefs == null || userId == null || prefs.isEmpty() || headers == null || headers.isEmpty()) {
             throw new IllegalStateException("Processor Context creation failed because of invalid values");
         }
         this.userId = userId;
@@ -24,6 +26,7 @@ public class ProcessorContext {
         // Do not want to build dependency on op for this context to work and
         // hence is open ended. Worst case would be RTE, so beware
         this.questionId = questionId;
+        this.requestHeaders = headers;
     }
 
     public String userId() {
@@ -40,6 +43,10 @@ public class ProcessorContext {
 
     public String questionId() {
         return this.questionId;
+    }
+
+    public MultiMap requestHeaders() {
+        return requestHeaders;
     }
 
 }
