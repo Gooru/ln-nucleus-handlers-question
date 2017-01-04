@@ -1,5 +1,6 @@
 package org.gooru.nucleus.handlers.questions.processors;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -7,10 +8,11 @@ import io.vertx.core.json.JsonObject;
  */
 public class ProcessorContext {
 
-    final private String userId;
-    final private JsonObject session;
-    final private JsonObject request;
-    final private String questionId;
+    private final String userId;
+    private final JsonObject session;
+    private final JsonObject request;
+    private final String questionId;
+    private final MultiMap requestHeaders;
 
     public ProcessorContext(String userId, JsonObject session, JsonObject request, String questionId) {
         if (session == null || userId == null || session.isEmpty()) {
@@ -24,6 +26,7 @@ public class ProcessorContext {
         // Do not want to build dependency on op for this context to work and
         // hence is open ended. Worst case would be RTE, so beware
         this.questionId = questionId;
+        this.requestHeaders = headers;
     }
 
     public String userId() {
@@ -40,6 +43,10 @@ public class ProcessorContext {
 
     public String questionId() {
         return this.questionId;
+    }
+
+    public MultiMap requestHeaders() {
+        return requestHeaders;
     }
 
 }
