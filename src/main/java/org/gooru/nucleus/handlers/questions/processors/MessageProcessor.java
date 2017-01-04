@@ -23,7 +23,7 @@ class MessageProcessor implements Processor {
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
     private final Message<Object> message;
     private String userId;
-    private JsonObject prefs;
+    private JsonObject session;
     private JsonObject request;
 
     MessageProcessor(Message<Object> message) {
@@ -54,7 +54,7 @@ class MessageProcessor implements Processor {
         MultiMap headers = message.headers();
         String questionId = headers.get(MessageConstants.QUESTION_ID);
 
-        return new ProcessorContext(userId, prefs, request, questionId, headers);
+        return new ProcessorContext(userId, session, request, questionId, headers);
     }
 
     private ExecutionResult<MessageResponse> validateAndInitialize() {
@@ -72,11 +72,11 @@ class MessageProcessor implements Processor {
                 MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("invalid.userid")),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
-        prefs = ((JsonObject) message.body()).getJsonObject(MessageConstants.MSG_KEY_PREFS);
+        session = ((JsonObject) message.body()).getJsonObject(MessageConstants.MSG_KEY_SESSION);
         request = ((JsonObject) message.body()).getJsonObject(MessageConstants.MSG_HTTP_BODY);
 
-        if (prefs == null || prefs.isEmpty()) {
-            LOGGER.error("Invalid preferences obtained, probably not authorized properly");
+        if (session == null || session.isEmpty()) {
+            LOGGER.error("Invalid session obtained, probably not authorized properly");
             return new ExecutionResult<>(
                 MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("incomplete.authorization")),
                 ExecutionResult.ExecutionStatus.FAILED);
