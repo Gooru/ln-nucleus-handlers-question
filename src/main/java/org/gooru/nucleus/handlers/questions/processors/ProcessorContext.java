@@ -14,7 +14,8 @@ public class ProcessorContext {
     private final String questionId;
     private final MultiMap requestHeaders;
 
-    public ProcessorContext(String userId, JsonObject session, JsonObject request, String questionId) {
+    public ProcessorContext(String userId, JsonObject session, JsonObject request, String questionId,
+        MultiMap headers) {
         if (session == null || userId == null || session.isEmpty()) {
             throw new IllegalStateException("Processor Context creation failed because of invalid values");
         }
