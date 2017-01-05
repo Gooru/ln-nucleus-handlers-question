@@ -117,6 +117,11 @@ class CreateQuestionHandler implements DBHandler {
         question.setCreatorId(context.userId());
         question.setContentFormatQuestion();
         question.setLicense(LicenseUtil.getDefaultLicenseCode());
+        question.setTenant(context.tenant());
+        String tenantRoot = context.tenantRoot();
+        if (tenantRoot != null && !tenantRoot.isEmpty()) {
+            question.setTenantRoot(tenantRoot);
+        }
     }
 
     private static class DefaultPayloadValidator implements PayloadValidator {
