@@ -42,6 +42,9 @@ public class AJEntityQuestion extends Model {
     public static final String QUESTION = "question";
     public static final String COURSE_ID = "course_id";
     private static final String CONTENT_FORMAT = "content_format";
+    public static final String TENANT = "tenant";
+    public static final String TENANT_ROOT = "tenant_root";
+
 
     public static final String OPEN_ENDED_QUESTION_SUBFORMAT = "open_ended_question";
 
@@ -146,6 +149,8 @@ public class AJEntityQuestion extends Model {
             (fieldValue -> FieldConverter.convertFieldToNamedType(fieldValue, CONTENT_SUBFORMAT_TYPE)));
         converterMap.put(ANSWER, (FieldConverter::convertFieldToJson));
         converterMap.put(HINT_EXPLANATION_DETAIL, (FieldConverter::convertFieldToJson));
+        converterMap.put(TENANT, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
+        converterMap.put(TENANT_ROOT, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
 
         return Collections.unmodifiableMap(converterMap);
     }
@@ -163,6 +168,8 @@ public class AJEntityQuestion extends Model {
         validatorMap.put(HINT_EXPLANATION_DETAIL, FieldValidator::validateJsonIfPresent);
         validatorMap.put(THUMBNAIL, (value) -> FieldValidator.validateStringIfPresent(value, 2000));
         validatorMap.put(VISIBLE_ON_PROFILE, FieldValidator::validateBooleanIfPresent);
+        validatorMap.put(TENANT, (FieldValidator::validateUuid));
+        validatorMap.put(TENANT_ROOT, (FieldValidator::validateUuid));
         return Collections.unmodifiableMap(validatorMap);
     }
 
@@ -185,34 +192,36 @@ public class AJEntityQuestion extends Model {
     }
 
     public void setModifierId(String modifier) {
-        FieldConverter fc = converterRegistry.get(MODIFIER_ID);
-        if (fc != null) {
-            this.set(MODIFIER_ID, fc.convertField(modifier));
-        } else {
-            this.set(MODIFIER_ID, modifier);
-        }
+        setFieldUsingConverter(MODIFIER_ID, modifier);
     }
 
-    public void setCreatorId(String modifier) {
-        FieldConverter fc = converterRegistry.get(CREATOR_ID);
-        if (fc != null) {
-            this.set(CREATOR_ID, fc.convertField(modifier));
-        } else {
-            this.set(CREATOR_ID, modifier);
-        }
+    public void setCreatorId(String creator) {
+        setFieldUsingConverter(CREATOR_ID, creator);
     }
 
     public void setContentFormatQuestion() {
-        FieldConverter fc = converterRegistry.get(CONTENT_FORMAT);
-        if (fc != null) {
-            this.set(CONTENT_FORMAT, fc.convertField(QUESTION));
-        } else {
-            this.set(CONTENT_FORMAT, QUESTION);
-        }
+        setFieldUsingConverter(CONTENT_FORMAT, QUESTION);
+    }
+
+    public void setTenant(String tenant) {
+        setFieldUsingConverter(TENANT, tenant);
+    }
+
+    public void setTenantRoot(String tenantRoot) {
+        setFieldUsingConverter(TENANT_ROOT, tenantRoot);
     }
 
     public void setLicense(Integer code) {
         this.set(LICENSE, code);
+    }
+
+    private void setFieldUsingConverter(String fieldName, Object fieldValue) {
+        FieldConverter fc = converterRegistry.get(fieldName);
+        if (fc != null) {
+            this.set(fieldName, fc.convertField(fieldValue));
+        } else {
+            this.set(fieldName, fieldValue);
+        }
     }
 
     public static ValidatorRegistry getValidatorRegistry() {
