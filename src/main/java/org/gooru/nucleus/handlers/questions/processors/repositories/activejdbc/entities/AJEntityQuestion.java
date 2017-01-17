@@ -25,6 +25,7 @@ public class AJEntityQuestion extends Model {
     private static final String ID = "id";
     private static final String TITLE = "title";
     private static final String PUBLISH_DATE = "publish_date";
+    private static final String PUBLISH_STATUS = "publish_status";
     private static final String DESCRIPTION = "description";
     private static final String ANSWER = "answer";
     private static final String METADATA = "metadata";
@@ -42,10 +43,10 @@ public class AJEntityQuestion extends Model {
     public static final String QUESTION = "question";
     public static final String COURSE_ID = "course_id";
     private static final String CONTENT_FORMAT = "content_format";
-    public static final String TENANT = "tenant";
-    public static final String TENANT_ROOT = "tenant_root";
+    private static final String TENANT = "tenant";
+    private static final String TENANT_ROOT = "tenant_root";
 
-
+    private static final String PUBLISH_STATUS_PUBLISHED = "published";
     public static final String OPEN_ENDED_QUESTION_SUBFORMAT = "open_ended_question";
 
     // QUERIES & FILTERS
@@ -71,15 +72,16 @@ public class AJEntityQuestion extends Model {
         "select id, creator_id, publish_date, collection_id, course_id, title, content_subformat from "
             + "content where content_format = " + "?::content_format_type and id = ?::uuid and is_deleted = ?";
     public static final String FETCH_QUESTION =
-        "select id, title, publish_date, description, answer, metadata, taxonomy, hint_explanation_detail, thumbnail,"
-            + " narration, license, creator_id, content_subformat, visible_on_profile, course_id, unit_id, lesson_id,"
-            + " collection_id, original_creator_id, original_content_id from content where content_format = ?::content_format_type"
-            + " and id = ?::uuid and is_deleted = ?";
+        "select id, title, publish_date, publish_status, description, answer, metadata, taxonomy, "
+            + "hint_explanation_detail, thumbnail, narration, license, creator_id, content_subformat, "
+            + "visible_on_profile, course_id, unit_id, lesson_id, collection_id, original_creator_id, "
+            + "original_content_id, tenant, tenant_root from content where content_format = ?::content_format_type "
+            + "and id = ?::uuid and is_deleted = ?";
     public static final String AUTH_FILTER = "id = ?::uuid and (owner_id = ?::uuid or collaborator ?? ?);";
+    public static final String PUBLISHED_FILTER = "id = ?::uuid and publish_status = 'published'::publish_status_type;";
 
     // TABLES
     public static final String TABLE_COURSE = "course";
-    public static final String TABLE_QUESTION = "content";
     public static final String TABLE_COLLECTION = "collection";
 
     private static final String ORIGINAL_CREATOR_ID = "original_creator_id";
@@ -215,6 +217,19 @@ public class AJEntityQuestion extends Model {
         this.set(LICENSE, code);
     }
 
+    public String getTenant() {
+        return this.getString(TENANT);
+    }
+
+    public String getTenantRoot() {
+        return this.getString(TENANT_ROOT);
+    }
+
+    public boolean isQuestionPublished() {
+        String publishStatus = this.getString(PUBLISH_STATUS);
+        return PUBLISH_STATUS_PUBLISHED.equalsIgnoreCase(publishStatus);
+    }
+
     private void setFieldUsingConverter(String fieldName, Object fieldValue) {
         FieldConverter fc = converterRegistry.get(fieldName);
         if (fc != null) {
@@ -230,6 +245,14 @@ public class AJEntityQuestion extends Model {
 
     public static ConverterRegistry getConverterRegistry() {
         return new QuestionConverterRegistry();
+    }
+
+    public String getCourseId() {
+        return this.getString(COURSE_ID);
+    }
+
+    public String getCollectionId() {
+        return this.getString(COLLECTION_ID);
     }
 
     private static class QuestionValidationRegistry implements ValidatorRegistry {
