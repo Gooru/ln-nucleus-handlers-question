@@ -53,8 +53,9 @@ class MessageProcessor implements Processor {
     private ProcessorContext createContext() {
         MultiMap headers = message.headers();
         String questionId = headers.get(MessageConstants.QUESTION_ID);
+        String rubricId = headers.get(MessageConstants.RUBRIC_ID);
 
-        return new ProcessorContext(userId, session, request, questionId, headers);
+        return new ProcessorContext(userId, session, request, questionId, rubricId, headers);
     }
 
     private ExecutionResult<MessageResponse> validateAndInitialize() {

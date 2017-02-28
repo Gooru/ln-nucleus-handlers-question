@@ -34,6 +34,14 @@ public final class ValidationUtils {
         }
         return !validateUuid(context.questionId());
     }
+    
+    public static boolean isValidRubricId(ProcessorContext context) {
+        if (context.rubricId() == null || context.rubricId().isEmpty()) {
+            LOGGER.error("Invalid request, rubric id not available. Aborting");
+            return true;
+        }
+        return !validateUuid(context.rubricId());
+    }
 
     private static boolean validateUuid(String uuidString) {
         try {
