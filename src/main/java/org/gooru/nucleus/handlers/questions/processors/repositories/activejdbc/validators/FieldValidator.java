@@ -9,6 +9,11 @@ import io.vertx.core.json.JsonObject;
  * Created by ashish on 28/1/16.
  */
 public interface FieldValidator {
+    
+    static boolean validateStringAllowNullOrEmpty(Object o, int len) {
+        return o == null || (o instanceof String && (((String) o).isEmpty() || ((String) o).length() <= len));
+    }
+    
     static boolean validateStringIfPresent(Object o, int len) {
         return o == null || o instanceof String && !((String) o).isEmpty() && ((String) o).length() < len;
     }
