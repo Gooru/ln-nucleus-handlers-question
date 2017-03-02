@@ -6,15 +6,18 @@ import java.util.ResourceBundle;
 import org.gooru.nucleus.handlers.questions.constants.MessageConstants;
 import org.gooru.nucleus.handlers.questions.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.questions.processors.events.EventBuilderFactory;
+import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.dbhandlers.helpers.TaxonomyHelper;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.entities.AJEntityRubric;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.entitybuilders.EntityBuilder;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.validators.PayloadValidator;
 import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
+import org.gooru.nucleus.handlers.questions.processors.utils.HelperUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -90,8 +93,10 @@ public class CreateRubricHandler implements DBHandler {
             }
         }
 
-        return new ExecutionResult<>(MessageResponseFactory.createCreatedResponse(rubric.getId().toString(),
-            EventBuilderFactory.getCreateRubricEventBuilder(rubric.getId().toString())),
+        LOGGER.debug("rubric created successfully");
+        return new ExecutionResult<>(
+            MessageResponseFactory.createCreatedResponse(rubric.getId().toString(),
+                EventBuilderFactory.getCreateRubricEventBuilder(rubric.getId().toString())),
             ExecutionResult.ExecutionStatus.SUCCESSFUL);
     }
 
@@ -110,13 +115,18 @@ public class CreateRubricHandler implements DBHandler {
     }
 
     private void autoPopulate() {
-        rubric.setOwnerId(context.userId());
         rubric.setModifierId(context.userId());
         rubric.setCreatorId(context.userId());
         rubric.setTenant(context.tenant());
         String tenantRoot = context.tenantRoot();
         if (tenantRoot != null && !tenantRoot.isEmpty()) {
             rubric.setTenantRoot(tenantRoot);
+        }
+
+        JsonArray gutCodes = TaxonomyHelper.populateGutCodes(context.request());
+        if (gutCodes != null) {
+            String strGC = HelperUtils.toPostgresTextArrayFromJsonArray(gutCodes);
+            rubric.setGutCodes(strGC);
         }
     }
 
@@ -125,4 +135,5 @@ public class CreateRubricHandler implements DBHandler {
 
     private static class DefaultAJEntityRubricEntityBuilder implements EntityBuilder<AJEntityRubric> {
     }
+
 }

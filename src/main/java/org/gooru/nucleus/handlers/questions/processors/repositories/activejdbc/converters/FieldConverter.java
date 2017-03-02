@@ -42,6 +42,18 @@ public interface FieldConverter {
             return null;
         }
     }
+    
+    static PGobject convertFieldToTextArray(String value) {
+        String UUID_TYPE = "text[]";
+        PGobject pgObject = new PGobject();
+        pgObject.setType(UUID_TYPE);
+        try {
+            pgObject.setValue(value);
+            return pgObject;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
 
     PGobject convertField(Object fieldValue);
 }

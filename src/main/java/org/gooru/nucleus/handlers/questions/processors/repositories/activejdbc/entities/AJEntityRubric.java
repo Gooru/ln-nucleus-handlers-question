@@ -25,12 +25,6 @@ public class AJEntityRubric extends Model {
     public static final String ID = "id";
     public static final String TITLE = "title";
     public static final String URL = "url";
-    public static final String HTTP_PROTOCOL = "http_protocol";
-    public static final String HTTP_HOST = "http_host";
-    public static final String HTTP_PORT = "http_port";
-    public static final String HTTP_DOMAIN = "http_domain";
-    public static final String HTTP_PATH = "http_path";
-    public static final String HTTP_QUERY = "http_query";
     public static final String IS_REMOTE = "is_remote";
     public static final String DESCRIPTION = "description";
     public static final String CATEGORIES = "categories";
@@ -38,7 +32,6 @@ public class AJEntityRubric extends Model {
     public static final String FEEDBACK_GUIDANCE = "feedback_guidance";
     public static final String TOTAL_POINTS = "total_points";
     public static final String OVERALL_FEEDBACK_REQUIRED = "overall_feedback_required";
-    public static final String OWNER_ID = "owner_id";
     public static final String CREATOR_ID = "creator_id";
     public static final String MODIFIER_ID = "modifier_id";
     public static final String ORIGINAL_CREATOR_ID = "original_creator_id";
@@ -48,6 +41,7 @@ public class AJEntityRubric extends Model {
     public static final String PUBLISH_STATUS = "publish_status";
     public static final String METADATA = "metadata";
     public static final String TAXONOMY = "taxonomy";
+    public static final String GUT_CODES = "gut_codes";
     public static final String THUMBNAIL = "thumbnail";
     public static final String CREATED_AT = "created_at";
     public static final String UPDATED_AT = "updated_at";
@@ -61,10 +55,10 @@ public class AJEntityRubric extends Model {
     public static final List<String> RUBRIC_TYPES = Arrays.asList("1xN", "NxN");
 
     public static final String FETCH_RUBRIC =
-        "SELECT id, title, url, is_remote, description, categories, type, feedback_guidance, total_points, overall_feedback_required, owner_id,"
+        "SELECT id, title, url, is_remote, description, categories, type, feedback_guidance, total_points, overall_feedback_required,"
             + " creator_id, modifier_id, original_creator_id, original_rubric_id, parent_rubric_id, publish_date, publish_status, metadata, taxonomy,"
-            + " thumbnail, created_at, updated_at, tenant, tenant_root, visible_on_profile, is_deleted, creator_system FROM rubric WHERE id = ?::uuid"
-            + " AND is_deleted = false";
+            + " gut_codes, thumbnail, created_at, updated_at, tenant, tenant_root, visible_on_profile, is_deleted, creator_system FROM rubric"
+            + " WHERE id = ?::uuid AND is_deleted = false";
 
     private static final List<String> INSERT_RUBRIC_ALLOWED_FIELDS =
         Arrays.asList(TITLE, DESCRIPTION, TYPE, METADATA, TAXONOMY, THUMBNAIL);
@@ -73,12 +67,12 @@ public class AJEntityRubric extends Model {
 
     public static final List<String> INSERT_RUBRIC_FORBIDDEN_FIELDS = Arrays.asList(ID, URL, IS_REMOTE, CATEGORIES,
         CREATED_AT, UPDATED_AT, CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, PARENT_RUBRIC_ID,
-        PUBLISH_DATE, IS_DELETED, VISIBLE_ON_PROFILE, TENANT, TENANT_ROOT);
+        GUT_CODES, PUBLISH_DATE, IS_DELETED, VISIBLE_ON_PROFILE, TENANT, TENANT_ROOT);
 
     public static final List<String> FETCH_RUBRIC_FIELDS = Arrays.asList(ID, TITLE, URL, IS_REMOTE, DESCRIPTION,
-        CATEGORIES, TYPE, FEEDBACK_GUIDANCE, TOTAL_POINTS, OVERALL_FEEDBACK_REQUIRED, OWNER_ID, CREATOR_ID, MODIFIER_ID,
+        CATEGORIES, TYPE, FEEDBACK_GUIDANCE, TOTAL_POINTS, OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, MODIFIER_ID,
         ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, PARENT_RUBRIC_ID, PUBLISH_DATE, PUBLISH_STATUS, METADATA, TAXONOMY,
-        THUMBNAIL, CREATED_AT, UPDATED_AT, TENANT, TENANT_ROOT, VISIBLE_ON_PROFILE, IS_DELETED, CREATOR_SYSTEM);
+        GUT_CODES, THUMBNAIL, CREATED_AT, UPDATED_AT, TENANT, TENANT_ROOT, VISIBLE_ON_PROFILE, IS_DELETED, CREATOR_SYSTEM);
 
     private static final Map<String, FieldValidator> validatorRegistry;
     private static final Map<String, FieldConverter> converterRegistry;
@@ -94,12 +88,12 @@ public class AJEntityRubric extends Model {
         converterMap.put(CATEGORIES, (FieldConverter::convertFieldToJson));
         converterMap.put(METADATA, (FieldConverter::convertFieldToJson));
         converterMap.put(TAXONOMY, (FieldConverter::convertFieldToJson));
-        converterMap.put(OWNER_ID, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
         converterMap.put(CREATOR_ID, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
         converterMap.put(MODIFIER_ID, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
         converterMap.put(TYPE, (fieldValue -> FieldConverter.convertFieldToNamedType(fieldValue, RUBRIC_TYPE)));
         converterMap.put(TENANT, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
         converterMap.put(TENANT_ROOT, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
+        converterMap.put(GUT_CODES, (fieldValue -> FieldConverter.convertFieldToTextArray((String) fieldValue)));
 
         return Collections.unmodifiableMap(converterMap);
     }
@@ -163,16 +157,16 @@ public class AJEntityRubric extends Model {
         setFieldUsingConverter(CREATOR_ID, creator);
     }
 
-    public void setOwnerId(String owner) {
-        setFieldUsingConverter(OWNER_ID, owner);
-    }
-
     public void setTenant(String tenant) {
         setFieldUsingConverter(TENANT, tenant);
     }
 
     public void setTenantRoot(String tenantRoot) {
         setFieldUsingConverter(TENANT_ROOT, tenantRoot);
+    }
+    
+    public void setGutCodes(String gutCodes) {
+        setFieldUsingConverter(GUT_CODES, gutCodes);
     }
 
     private void setFieldUsingConverter(String fieldName, Object fieldValue) {
