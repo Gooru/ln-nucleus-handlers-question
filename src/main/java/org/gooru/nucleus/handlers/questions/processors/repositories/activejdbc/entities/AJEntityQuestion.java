@@ -45,6 +45,7 @@ public class AJEntityQuestion extends Model {
     private static final String CONTENT_FORMAT = "content_format";
     private static final String TENANT = "tenant";
     private static final String TENANT_ROOT = "tenant_root";
+    public static final String RUBRIC_ID = "rubric_id";
 
     private static final String PUBLISH_STATUS_PUBLISHED = "published";
     public static final String OPEN_ENDED_QUESTION_SUBFORMAT = "open_ended_question";
@@ -69,7 +70,7 @@ public class AJEntityQuestion extends Model {
             + "is_deleted = false";
 
     public static final String VALIDATE_EXISTS_NON_DELETED =
-        "select id, creator_id, publish_date, collection_id, course_id, title, content_subformat from "
+        "select id, creator_id, publish_date, collection_id, course_id, title, content_subformat, rubric_id from "
             + "content where content_format = " + "?::content_format_type and id = ?::uuid and is_deleted = ?";
     public static final String FETCH_QUESTION =
         "select id, title, publish_date, publish_status, description, answer, metadata, taxonomy, "
@@ -124,6 +125,8 @@ public class AJEntityQuestion extends Model {
             "fill_in_the_blank_question", "open_ended_question", "hot_text_reorder_question",
             "hot_text_highlight_question", "hot_spot_image_question", "hot_spot_text_question", "external_question");
 
+    public static final List<String> RUBRIC_ASSOCIATION_ALLOWED_TYPES = Arrays.asList("open_ended_question"); 
+    
     // TYPES
     private static final String UUID_TYPE = "uuid";
     private static final String JSONB_TYPE = "jsonb";
@@ -153,7 +156,7 @@ public class AJEntityQuestion extends Model {
         converterMap.put(HINT_EXPLANATION_DETAIL, (FieldConverter::convertFieldToJson));
         converterMap.put(TENANT, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
         converterMap.put(TENANT_ROOT, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
-
+        converterMap.put(RUBRIC_ID, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
         return Collections.unmodifiableMap(converterMap);
     }
 
@@ -223,6 +226,10 @@ public class AJEntityQuestion extends Model {
 
     public String getTenantRoot() {
         return this.getString(TENANT_ROOT);
+    }
+    
+    public void setRubricId(String rubricId) {
+        setFieldUsingConverter(RUBRIC_ID, rubricId);
     }
 
     public boolean isQuestionPublished() {

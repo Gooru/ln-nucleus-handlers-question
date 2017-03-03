@@ -28,7 +28,6 @@ public class AJEntityRubric extends Model {
     public static final String IS_REMOTE = "is_remote";
     public static final String DESCRIPTION = "description";
     public static final String CATEGORIES = "categories";
-    public static final String TYPE = "type";
     public static final String FEEDBACK_GUIDANCE = "feedback_guidance";
     public static final String TOTAL_POINTS = "total_points";
     public static final String OVERALL_FEEDBACK_REQUIRED = "overall_feedback_required";
@@ -51,26 +50,43 @@ public class AJEntityRubric extends Model {
     public static final String IS_DELETED = "is_deleted";
     public static final String CREATOR_SYSTEM = "creator_system";
 
-    private static final String RUBRIC_TYPE = "rubric_type";
-    public static final List<String> RUBRIC_TYPES = Arrays.asList("1xN", "NxN");
+    public static final String DUPLICATE_IDS = "duplicate_ids";
 
     public static final String FETCH_RUBRIC =
         "SELECT id, title, url, is_remote, description, categories, type, feedback_guidance, total_points, overall_feedback_required,"
             + " creator_id, modifier_id, original_creator_id, original_rubric_id, parent_rubric_id, publish_date, publish_status, metadata, taxonomy,"
             + " gut_codes, thumbnail, created_at, updated_at, tenant, tenant_root, visible_on_profile, is_deleted, creator_system FROM rubric"
             + " WHERE id = ?::uuid AND is_deleted = false";
-
+    
+    public static final String SELECT_DUPLICATE =
+        "SELECT id FROM rubric WHERE lower(url) = ? AND tenant = ?::uuid AND is_deleted = false AND original_rubric_id IS NULL";
+    
+    public static final String SELECT_QUESTION_FOR_RUBRIC =
+        "SELECT id FROM content WHERE rubric_id = ?::uuid AND content_format = question AND is_deleted = false";
+    
+    public static final String VALIDATE_EXISTS_NOT_DELETED =
+        "SELECT id, url, is_remote, creator_id, original_rubric_id FROM rubric WHERE id = ?::uuid AND is_deleted = false";
+    
+    public static final String UPDATE_RUBRIC_MARK_DELETED =
+        "is_deleted = true, modifier_id = ?::uuid";
+    
+    public static final String UPDATE_RUBRIC_MARK_DELETED_CONDITION = "rubric_id = ?::uuid";
+    
     private static final List<String> INSERT_RUBRIC_ALLOWED_FIELDS =
-        Arrays.asList(TITLE, DESCRIPTION, TYPE, METADATA, TAXONOMY, THUMBNAIL);
+        Arrays.asList(TITLE, DESCRIPTION, METADATA, TAXONOMY, THUMBNAIL);
+    
+    private static final List<String> UPDATE_RUBRIC_ALLOWED_FIELDS =
+        Arrays.asList(TITLE, DESCRIPTION, METADATA, TAXONOMY, THUMBNAIL, URL, IS_REMOTE, FEEDBACK_GUIDANCE,
+            OVERALL_FEEDBACK_REQUIRED, TOTAL_POINTS, CATEGORIES, VISIBLE_ON_PROFILE);
 
-    private static final List<String> INSERT_RUBRIC_MANDATORY_FIELDS = Arrays.asList(TITLE, TYPE);
+    private static final List<String> INSERT_RUBRIC_MANDATORY_FIELDS = Arrays.asList(TITLE);
 
     public static final List<String> INSERT_RUBRIC_FORBIDDEN_FIELDS = Arrays.asList(ID, URL, IS_REMOTE, CATEGORIES,
         CREATED_AT, UPDATED_AT, CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, PARENT_RUBRIC_ID,
         GUT_CODES, PUBLISH_DATE, IS_DELETED, VISIBLE_ON_PROFILE, TENANT, TENANT_ROOT);
 
     public static final List<String> FETCH_RUBRIC_FIELDS = Arrays.asList(ID, TITLE, URL, IS_REMOTE, DESCRIPTION,
-        CATEGORIES, TYPE, FEEDBACK_GUIDANCE, TOTAL_POINTS, OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, MODIFIER_ID,
+        CATEGORIES, FEEDBACK_GUIDANCE, TOTAL_POINTS, OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, MODIFIER_ID,
         ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, PARENT_RUBRIC_ID, PUBLISH_DATE, PUBLISH_STATUS, METADATA, TAXONOMY,
         GUT_CODES, THUMBNAIL, CREATED_AT, UPDATED_AT, TENANT, TENANT_ROOT, VISIBLE_ON_PROFILE, IS_DELETED, CREATOR_SYSTEM);
 
@@ -88,12 +104,16 @@ public class AJEntityRubric extends Model {
         converterMap.put(CATEGORIES, (FieldConverter::convertFieldToJson));
         converterMap.put(METADATA, (FieldConverter::convertFieldToJson));
         converterMap.put(TAXONOMY, (FieldConverter::convertFieldToJson));
+        converterMap.put(DESCRIPTION, (fieldValue -> FieldConverter.convertEmptyStringToNull((String) fieldValue)));
+        converterMap.put(THUMBNAIL, (fieldValue -> FieldConverter.convertEmptyStringToNull((String) fieldValue)));
         converterMap.put(CREATOR_ID, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
         converterMap.put(MODIFIER_ID, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
-        converterMap.put(TYPE, (fieldValue -> FieldConverter.convertFieldToNamedType(fieldValue, RUBRIC_TYPE)));
         converterMap.put(TENANT, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
         converterMap.put(TENANT_ROOT, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
         converterMap.put(GUT_CODES, (fieldValue -> FieldConverter.convertFieldToTextArray((String) fieldValue)));
+        converterMap.put(TAXONOMY, (FieldConverter::convertFieldToJson));
+        converterMap.put(CATEGORIES, (FieldConverter::convertFieldToJson));
+        converterMap.put(FEEDBACK_GUIDANCE, (fieldValue -> FieldConverter.convertEmptyStringToNull((String) fieldValue)));
 
         return Collections.unmodifiableMap(converterMap);
     }
@@ -103,13 +123,19 @@ public class AJEntityRubric extends Model {
         validatorMap.put(ID, (FieldValidator::validateUuid));
         validatorMap.put(TITLE, (value) -> FieldValidator.validateString(value, 1000));
         validatorMap.put(DESCRIPTION, (value) -> FieldValidator.validateStringAllowNullOrEmpty(value, 20000));
-        validatorMap.put(TYPE, (value) -> RUBRIC_TYPES.contains(value));
         validatorMap.put(METADATA, FieldValidator::validateJsonIfPresent);
         validatorMap.put(TAXONOMY, FieldValidator::validateJsonIfPresent);
         validatorMap.put(THUMBNAIL, (value) -> FieldValidator.validateStringAllowNullOrEmpty(value, 2000));
         validatorMap.put(VISIBLE_ON_PROFILE, FieldValidator::validateBooleanIfPresent);
         validatorMap.put(TENANT, (FieldValidator::validateUuid));
         validatorMap.put(TENANT_ROOT, (FieldValidator::validateUuid));
+        validatorMap.put(URL, (value) -> FieldValidator.validateStringIfPresent(value, 2000));
+        validatorMap.put(IS_REMOTE, FieldValidator::validateBooleanIfPresent);
+        validatorMap.put(FEEDBACK_GUIDANCE, (value) -> FieldValidator.validateStringAllowNullOrEmpty(value, 5000));
+        validatorMap.put(TOTAL_POINTS, FieldValidator::validateIntegerIfPresent);
+        validatorMap.put(OVERALL_FEEDBACK_REQUIRED, FieldValidator::validateBooleanIfPresent);
+        validatorMap.put(CATEGORIES, FieldValidator::validateJsonArrayIfPresent);
+        validatorMap.put(VISIBLE_ON_PROFILE, FieldValidator::validateBooleanIfPresent);
         return Collections.unmodifiableMap(validatorMap);
     }
 
@@ -147,6 +173,10 @@ public class AJEntityRubric extends Model {
                 return Collections.unmodifiableSet(new HashSet<String>(INSERT_RUBRIC_MANDATORY_FIELDS));
             }
         };
+    }
+    
+    public static FieldSelector updateFieldSelector() {
+        return () -> Collections.unmodifiableSet(new HashSet<>(UPDATE_RUBRIC_ALLOWED_FIELDS));
     }
 
     public void setModifierId(String modifier) {

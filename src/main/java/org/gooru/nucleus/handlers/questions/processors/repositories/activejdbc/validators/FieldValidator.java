@@ -74,10 +74,14 @@ public interface FieldValidator {
     static boolean validateBooleanIfPresent(Object o) {
         return o == null || o instanceof Boolean;
     }
+    
+    static boolean validateIntegerIfPresent(Object o) {
+        return o == null || o instanceof Integer;
+    }
 
     static boolean validateUuid(Object o) {
         try {
-            UUID uuid = UUID.fromString((String) o);
+            UUID.fromString((String) o);
             return true;
         } catch (IllegalArgumentException e) {
             return false;
