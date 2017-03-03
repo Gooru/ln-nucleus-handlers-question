@@ -53,7 +53,7 @@ public class AJEntityRubric extends Model {
     public static final String DUPLICATE_IDS = "duplicate_ids";
 
     public static final String FETCH_RUBRIC =
-        "SELECT id, title, url, is_remote, description, categories, type, feedback_guidance, total_points, overall_feedback_required,"
+        "SELECT id, title, url, is_remote, description, categories, feedback_guidance, total_points, overall_feedback_required,"
             + " creator_id, modifier_id, original_creator_id, original_rubric_id, parent_rubric_id, publish_date, publish_status, metadata, taxonomy,"
             + " gut_codes, thumbnail, created_at, updated_at, tenant, tenant_root, visible_on_profile, is_deleted, creator_system FROM rubric"
             + " WHERE id = ?::uuid AND is_deleted = false";
