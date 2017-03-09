@@ -12,11 +12,12 @@ public class ProcessorContext {
     private final JsonObject session;
     private final JsonObject request;
     private final String questionId;
+    private final String rubricId;
     private final MultiMap requestHeaders;
     private final TenantContext tenantContext;
 
     public ProcessorContext(String userId, JsonObject session, JsonObject request, String questionId,
-        MultiMap headers) {
+        String rubricId, MultiMap headers) {
         if (session == null || userId == null || session.isEmpty()) {
             throw new IllegalStateException("Processor Context creation failed because of invalid values");
         }
@@ -28,6 +29,7 @@ public class ProcessorContext {
         // Do not want to build dependency on op for this context to work and
         // hence is open ended. Worst case would be RTE, so beware
         this.questionId = questionId;
+        this.rubricId = rubricId;
         this.requestHeaders = headers;
         this.tenantContext = new TenantContext(session);
     }
@@ -47,11 +49,14 @@ public class ProcessorContext {
     public String questionId() {
         return this.questionId;
     }
+    
+    public String rubricId() {
+        return this.rubricId;
+    }
 
     public MultiMap requestHeaders() {
         return requestHeaders;
     }
-
 
     public String tenant() {
         return this.tenantContext.tenant();

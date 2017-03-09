@@ -8,8 +8,12 @@ import org.postgresql.util.PGobject;
  * Created by ashish on 28/1/16.
  */
 public interface FieldConverter {
+    String UUID_TYPE = "uuid";
+    String JSONB_TYPE = "jsonb";
+    String TEXT_ARRAY_TYPE = "text[]";
+    String TEXT_TYPE = "text";
+    
     static PGobject convertFieldToJson(Object value) {
-        String JSONB_TYPE = "jsonb";
         PGobject pgObject = new PGobject();
         pgObject.setType(JSONB_TYPE);
         try {
@@ -21,7 +25,6 @@ public interface FieldConverter {
     }
 
     static PGobject convertFieldToUuid(String value) {
-        String UUID_TYPE = "uuid";
         PGobject pgObject = new PGobject();
         pgObject.setType(UUID_TYPE);
         try {
@@ -37,6 +40,31 @@ public interface FieldConverter {
         pgObject.setType(type);
         try {
             pgObject.setValue(value == null ? null : String.valueOf(value));
+            return pgObject;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+    
+    static PGobject convertFieldToTextArray(String value) {
+        PGobject pgObject = new PGobject();
+        pgObject.setType(TEXT_ARRAY_TYPE);
+        try {
+            pgObject.setValue(value);
+            return pgObject;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+    
+    static PGobject convertEmptyStringToNull(String s) {
+        if (s != null && s.isEmpty()) {
+            return null;
+        }
+        PGobject pgObject = new PGobject();
+        pgObject.setType(TEXT_TYPE);
+        try {
+            pgObject.setValue(s);
             return pgObject;
         } catch (SQLException e) {
             return null;

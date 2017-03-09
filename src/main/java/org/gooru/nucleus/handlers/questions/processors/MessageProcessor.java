@@ -39,6 +39,7 @@ class MessageProcessor implements Processor {
             }
 
             final String msgOp = message.headers().get(MessageConstants.MSG_HEADER_OP);
+            LOGGER.info("## Processing request:{}", msgOp);
             return CommandProcessorBuilder.lookupBuilder(msgOp).build(createContext()).process();
         } catch (VersionDeprecatedException e) {
             LOGGER.error("Version is deprecated");
@@ -53,8 +54,8 @@ class MessageProcessor implements Processor {
     private ProcessorContext createContext() {
         MultiMap headers = message.headers();
         String questionId = headers.get(MessageConstants.QUESTION_ID);
-
-        return new ProcessorContext(userId, session, request, questionId, headers);
+        String rubricId = headers.get(MessageConstants.RUBRIC_ID);
+        return new ProcessorContext(userId, session, request, questionId, rubricId, headers);
     }
 
     private ExecutionResult<MessageResponse> validateAndInitialize() {

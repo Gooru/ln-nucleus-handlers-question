@@ -52,6 +52,36 @@ public enum CommandProcessorBuilder {
         public Processor build(ProcessorContext context) {
             return new QuestionGetProcessor(context);
         }
+    },
+    RUBRIC_DELETE(MessageConstants.MSG_OP_RUBRIC_DELETE) {
+        @Override
+        public Processor build(ProcessorContext context) {
+            return new RubricDeleteProcessor(context);
+        }
+    },
+    RUBRIC_UPDATE(MessageConstants.MSG_OP_RUBRIC_UPDATE) {
+        @Override
+        public Processor build(ProcessorContext context) {
+            return new RubricUpdateProcessor(context);
+        }
+    },
+    RUBRIC_CREATE(MessageConstants.MSG_OP_RUBRIC_CREATE) {
+        @Override
+        public Processor build(ProcessorContext context) {
+            return new RubricCreateProcessor(context);
+        }
+    },
+    RUBRIC_GET(MessageConstants.MSG_OP_RUBRIC_GET) {
+        @Override
+        public Processor build(ProcessorContext context) {
+            return new RubricGetProcessor(context);
+        }
+    },
+    QUESTION_RUBRIC_ASSOCIATE(MessageConstants.MSG_OP_QUESTION_RUBRIC_ASSOCIATE) {
+        @Override
+        public Processor build(ProcessorContext context) {
+            return new QuestionRubricAssociationProcessor(context);
+        }
     };
 
     private String name;

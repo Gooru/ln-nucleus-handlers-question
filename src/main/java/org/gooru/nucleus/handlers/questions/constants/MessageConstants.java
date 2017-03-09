@@ -24,12 +24,19 @@ public final class MessageConstants {
     public static final String MSG_OP_QUESTION_CREATE = "question.create";
     public static final String MSG_OP_QUESTION_UPDATE = "question.update";
     public static final String MSG_OP_QUESTION_DELETE = "question.delete";
+    
+    public static final String MSG_OP_RUBRIC_GET = "rubric.get";
+    public static final String MSG_OP_RUBRIC_CREATE = "rubric.create";
+    public static final String MSG_OP_RUBRIC_UPDATE = "rubric.update";
+    public static final String MSG_OP_RUBRIC_DELETE = "rubric.delete";
+    public static final String MSG_OP_QUESTION_RUBRIC_ASSOCIATE = "question.rubirc.association";
 
     // Containers for different responses
     public static final String RESP_CONTAINER_MBUS = "mb.container";
     public static final String RESP_CONTAINER_EVENT = "mb.event";
 
     public static final String QUESTION_ID = "questionId";
+    public static final String RUBRIC_ID = "rubricId";
 
     private MessageConstants() {
         throw new AssertionError();
