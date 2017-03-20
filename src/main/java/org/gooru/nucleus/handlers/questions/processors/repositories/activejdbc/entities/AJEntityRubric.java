@@ -58,6 +58,10 @@ public class AJEntityRubric extends Model {
             + " gut_codes, thumbnail, created_at, updated_at, tenant, tenant_root, visible_on_profile, is_deleted, creator_system FROM rubric"
             + " WHERE id = ?::uuid AND is_deleted = false";
     
+    public static final String FETCH_RUBRIC_SUMMARY =
+        "SELECT id, title, url, is_remote, description, feedback_guidance, total_points, overall_feedback_required,"
+            + " creator_id, metadata, taxonomy, gut_codes, thumbnail FROM rubric WHERE id = ?::uuid AND is_deleted = false";
+    
     public static final String SELECT_DUPLICATE =
         "SELECT id FROM rubric WHERE lower(url) = ? AND tenant = ?::uuid AND is_deleted = false AND original_rubric_id IS NULL";
     
@@ -89,6 +93,10 @@ public class AJEntityRubric extends Model {
         CATEGORIES, FEEDBACK_GUIDANCE, TOTAL_POINTS, OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, MODIFIER_ID,
         ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, PARENT_RUBRIC_ID, PUBLISH_DATE, PUBLISH_STATUS, METADATA, TAXONOMY,
         GUT_CODES, THUMBNAIL, CREATED_AT, UPDATED_AT, TENANT, TENANT_ROOT, VISIBLE_ON_PROFILE, IS_DELETED, CREATOR_SYSTEM);
+    
+    public static final List<String> RUBRIC_SUMMARY =
+        Arrays.asList(ID, TITLE, URL, IS_REMOTE, DESCRIPTION, FEEDBACK_GUIDANCE, TOTAL_POINTS,
+            OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, METADATA, TAXONOMY, GUT_CODES, THUMBNAIL);
 
     private static final Map<String, FieldValidator> validatorRegistry;
     private static final Map<String, FieldConverter> converterRegistry;

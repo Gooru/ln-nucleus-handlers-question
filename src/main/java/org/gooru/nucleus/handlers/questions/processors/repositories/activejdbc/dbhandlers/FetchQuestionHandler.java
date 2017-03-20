@@ -5,6 +5,7 @@ import java.util.ResourceBundle;
 import org.gooru.nucleus.handlers.questions.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.dbauth.AuthorizerBuilder;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.entities.AJEntityQuestion;
+import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.entities.AJEntityRubric;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.formatter.JsonFormatterBuilder;
 import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
@@ -23,6 +24,7 @@ class FetchQuestionHandler implements DBHandler {
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
     private final ProcessorContext context;
     private AJEntityQuestion question;
+    private AJEntityRubric rubric;
 
     FetchQuestionHandler(ProcessorContext context) {
         this.context = context;
@@ -53,15 +55,39 @@ class FetchQuestionHandler implements DBHandler {
                 ExecutionResult.ExecutionStatus.FAILED);
         }
         question = questions.get(0);
+        
+        if (AJEntityQuestion.RUBRIC_ASSOCIATION_ALLOWED_TYPES
+            .contains(question.getString(AJEntityQuestion.CONTENT_SUBFORMAT))) {
+            String rubricId = question.getString(AJEntityQuestion.RUBRIC_ID);
+            if (rubricId != null) {
+                LazyList<AJEntityRubric> rubrics = AJEntityRubric.findBySQL(AJEntityRubric.FETCH_RUBRIC_SUMMARY, rubricId);
+                
+                if (rubrics.size() < 1) {
+                    LOGGER.warn("Rubric id: {} not present in DB", rubricId);
+                    return new ExecutionResult<>(MessageResponseFactory.createInternalErrorResponse(
+                        RESOURCE_BUNDLE.getString("rubric.not.found")), ExecutionResult.ExecutionStatus.FAILED);
+                }
+                
+                rubric = rubrics.get(0);
+            }
+        }
         return AuthorizerBuilder.buildTenantAuthorizer(this.context).authorize(question);
 
     }
 
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-        return new ExecutionResult<>(MessageResponseFactory.createOkayResponse(new JsonObject(
-            JsonFormatterBuilder.buildSimpleJsonFormatter(false, AJEntityQuestion.FETCH_QUESTION_FIELDS)
-                .toJson(this.question))), ExecutionResult.ExecutionStatus.SUCCESSFUL);
+        JsonObject response = new JsonObject(JsonFormatterBuilder
+            .buildSimpleJsonFormatter(false, AJEntityQuestion.FETCH_QUESTION_FIELDS).toJson(this.question));
+
+        if (rubric != null) {
+            response.put(AJEntityQuestion.RUBRIC, new JsonObject(JsonFormatterBuilder
+                .buildSimpleJsonFormatter(false, AJEntityRubric.RUBRIC_SUMMARY).toJson(this.rubric)));
+        } else {
+            response.putNull(AJEntityQuestion.RUBRIC);
+        }
+        return new ExecutionResult<>(MessageResponseFactory.createOkayResponse(response),
+            ExecutionResult.ExecutionStatus.SUCCESSFUL);
     }
 
     @Override

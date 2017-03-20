@@ -46,6 +46,7 @@ public class AJEntityQuestion extends Model {
     private static final String TENANT = "tenant";
     private static final String TENANT_ROOT = "tenant_root";
     public static final String RUBRIC_ID = "rubric_id";
+    public static final String RUBRIC = "rubric";
 
     private static final String PUBLISH_STATUS_PUBLISHED = "published";
     public static final String OPEN_ENDED_QUESTION_SUBFORMAT = "open_ended_question";
@@ -76,7 +77,7 @@ public class AJEntityQuestion extends Model {
         "select id, title, publish_date, publish_status, description, answer, metadata, taxonomy, "
             + "hint_explanation_detail, thumbnail, narration, license, creator_id, content_subformat, "
             + "visible_on_profile, course_id, unit_id, lesson_id, collection_id, original_creator_id, "
-            + "original_content_id, tenant, tenant_root from content where content_format = ?::content_format_type "
+            + "original_content_id, tenant, tenant_root, rubric_id from content where content_format = ?::content_format_type "
             + "and id = ?::uuid and is_deleted = ?";
     public static final String AUTH_FILTER = "id = ?::uuid and (owner_id = ?::uuid or collaborator ?? ?);";
     public static final String PUBLISHED_FILTER = "id = ?::uuid and publish_status = 'published'::publish_status_type;";
