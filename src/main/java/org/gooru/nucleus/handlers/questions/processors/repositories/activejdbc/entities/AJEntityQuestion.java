@@ -1,6 +1,13 @@
 package org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.entities;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.Set;
 
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.converters.ConverterRegistry;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.converters.FieldConverter;
@@ -45,7 +52,6 @@ public class AJEntityQuestion extends Model {
     private static final String CONTENT_FORMAT = "content_format";
     private static final String TENANT = "tenant";
     private static final String TENANT_ROOT = "tenant_root";
-    public static final String RUBRIC_ID = "rubric_id";
     public static final String RUBRIC = "rubric";
 
     private static final String PUBLISH_STATUS_PUBLISHED = "published";
@@ -71,13 +77,13 @@ public class AJEntityQuestion extends Model {
             + "is_deleted = false";
 
     public static final String VALIDATE_EXISTS_NON_DELETED =
-        "select id, creator_id, publish_date, collection_id, course_id, title, content_subformat, rubric_id from "
+        "select id, creator_id, publish_date, collection_id, course_id, title, content_subformat, unit_id, lesson_id from "
             + "content where content_format = " + "?::content_format_type and id = ?::uuid and is_deleted = ?";
     public static final String FETCH_QUESTION =
         "select id, title, publish_date, publish_status, description, answer, metadata, taxonomy, "
             + "hint_explanation_detail, thumbnail, narration, license, creator_id, content_subformat, "
             + "visible_on_profile, course_id, unit_id, lesson_id, collection_id, original_creator_id, "
-            + "original_content_id, tenant, tenant_root, rubric_id from content where content_format = ?::content_format_type "
+            + "original_content_id, tenant, tenant_root from content where content_format = ?::content_format_type "
             + "and id = ?::uuid and is_deleted = ?";
     public static final String AUTH_FILTER = "id = ?::uuid and (owner_id = ?::uuid or collaborator ?? ?);";
     public static final String PUBLISHED_FILTER = "id = ?::uuid and publish_status = 'published'::publish_status_type;";
@@ -157,7 +163,6 @@ public class AJEntityQuestion extends Model {
         converterMap.put(HINT_EXPLANATION_DETAIL, (FieldConverter::convertFieldToJson));
         converterMap.put(TENANT, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
         converterMap.put(TENANT_ROOT, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
-        converterMap.put(RUBRIC_ID, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
         return Collections.unmodifiableMap(converterMap);
     }
 
@@ -229,10 +234,6 @@ public class AJEntityQuestion extends Model {
         return this.getString(TENANT_ROOT);
     }
     
-    public void setRubricId(String rubricId) {
-        setFieldUsingConverter(RUBRIC_ID, rubricId);
-    }
-
     public boolean isQuestionPublished() {
         String publishStatus = this.getString(PUBLISH_STATUS);
         return PUBLISH_STATUS_PUBLISHED.equalsIgnoreCase(publishStatus);
@@ -257,6 +258,14 @@ public class AJEntityQuestion extends Model {
 
     public String getCourseId() {
         return this.getString(COURSE_ID);
+    }
+    
+    public String getUnitId() {
+        return this.getString(UNIT_ID);
+    }
+    
+    public String getLessonId() {
+        return this.getString(LESSON_ID);
     }
 
     public String getCollectionId() {

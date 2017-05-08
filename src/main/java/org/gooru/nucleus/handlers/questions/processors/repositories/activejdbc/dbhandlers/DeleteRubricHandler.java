@@ -61,7 +61,7 @@ public class DeleteRubricHandler implements DBHandler {
                 MessageResponseFactory.createNotFoundResponse(RESOURCE_BUNDLE.getString("rubric.not.found")),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
-        rubric = rubrics.get(0);
+        this.rubric = rubrics.get(0);
 
         if (!authorized()) {
             // Delete is forbidden
@@ -70,14 +70,14 @@ public class DeleteRubricHandler implements DBHandler {
                 ExecutionResult.ExecutionStatus.FAILED);
         }
 
-        if (rubric.getString(AJEntityRubric.ORIGINAL_RUBRIC_ID) != null) {
-            LazyList<AJEntityQuestion> questions =
-                AJEntityQuestion.findBySQL(AJEntityRubric.SELECT_QUESTION_FOR_RUBRIC, context.rubricId());
-            if (!questions.isEmpty()) {
-                return new ExecutionResult<>(
-                    MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("delete.now.allowed")),
-                    ExecutionResult.ExecutionStatus.FAILED);
-            }
+        // If the rubric is copy and associated with question
+        // do not delete
+        if (this.rubric.getString(AJEntityRubric.ORIGINAL_RUBRIC_ID) != null
+            && this.rubric.getString(AJEntityRubric.CONTENT_ID) != null) {
+            LOGGER.debug("rubric '{}' associated with question, delete not allowed", context.rubricId());
+            return new ExecutionResult<>(
+                MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("delete.now.allowed")),
+                ExecutionResult.ExecutionStatus.FAILED);
         }
 
         return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
@@ -85,15 +85,16 @@ public class DeleteRubricHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-        rubric.setModifierId(context.userId());
-        rubric.setBoolean(AJEntityRubric.IS_DELETED, true);
+        this.rubric.setModifierId(context.userId());
+        this.rubric.setBoolean(AJEntityRubric.IS_DELETED, true);
 
-        if (!rubric.save()) {
+        if (!this.rubric.save()) {
             LOGGER.warn("error while deleting rubric:{}", context.rubricId());
             return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
 
+        LOGGER.info("rubric '{}' is marked as deleted", context.rubricId());
         return new ExecutionResult<>(
             MessageResponseFactory.createNoContentResponse(RESOURCE_BUNDLE.getString("deleted"),
                 EventBuilderFactory.getDeleteRubricEventBuilder(this.context.rubricId())),
@@ -106,7 +107,7 @@ public class DeleteRubricHandler implements DBHandler {
     }
 
     private boolean authorized() {
-        String creator = rubric.getString(AJEntityQuestion.CREATOR_ID);
+        String creator = this.rubric.getString(AJEntityQuestion.CREATOR_ID);
         if (creator != null && creator.equalsIgnoreCase(context.userId())) {
             return true;
         }
