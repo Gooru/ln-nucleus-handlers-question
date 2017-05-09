@@ -7,6 +7,7 @@ import org.gooru.nucleus.handlers.questions.constants.MessageConstants;
 import org.gooru.nucleus.handlers.questions.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.questions.processors.events.EventBuilderFactory;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.entities.AJEntityQuestion;
+import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.entities.AJEntityRubric;
 import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
@@ -101,6 +102,14 @@ public class DeleteQuestionHandler implements DBHandler {
             return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
+        
+        // If the questions if OPEN_ENDED_QUESTION delete the associated rubric
+        if (this.question.get(AJEntityQuestion.CONTENT_SUBFORMAT)
+            .equals(AJEntityQuestion.OPEN_ENDED_QUESTION_SUBFORMAT)) {
+            AJEntityRubric.update("is_deleted = true, modifier_id = ?::uuid",
+                "content_id = ?::uuid AND is_deleted = false", context.userId(), context.questionId());
+        }
+        
         return new ExecutionResult<>(
             MessageResponseFactory.createNoContentResponse(RESOURCE_BUNDLE.getString("deleted"),
                 EventBuilderFactory.getDeleteQuestionEventBuilder(this.context.questionId())),

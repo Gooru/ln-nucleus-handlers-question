@@ -9,6 +9,7 @@ import org.gooru.nucleus.handlers.questions.processors.events.EventBuilderFactor
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.dbhandlers.helpers.TaxonomyHelper;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.entities.AJEntityRubric;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.entitybuilders.EntityBuilder;
+import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.validators.FieldSelector;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.validators.PayloadValidator;
 import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
@@ -59,8 +60,26 @@ public class CreateRubricHandler implements DBHandler {
         }
 
         // Our validators should certify this
-        errors = new DefaultPayloadValidator().validatePayload(context.request(), AJEntityRubric.createFieldSelector(),
-            AJEntityRubric.getValidatorRegistry());
+        Boolean isRubric = context.request().getBoolean(AJEntityRubric.IS_RUBRIC);
+
+        if (isRubric == null) {
+            errors = new JsonObject();
+            errors.put(AJEntityRubric.IS_RUBRIC, RESOURCE_BUNDLE.getString("missing.mandatory.field"));
+            LOGGER.warn("is_rubric field is missing");
+            return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(errors),
+                ExecutionResult.ExecutionStatus.FAILED);
+        }
+
+        LOGGER.debug("creating rubric with is_rubric={}", isRubric);
+        FieldSelector fs;
+        if (isRubric) {
+            fs = AJEntityRubric.createRubricOnFieldSelector();
+        } else {
+            fs = AJEntityRubric.createRubricOffFieldSelector();
+        }
+
+        errors =
+            new DefaultPayloadValidator().validatePayload(context.request(), fs, AJEntityRubric.getValidatorRegistry());
         if ((errors != null) && !errors.isEmpty()) {
             LOGGER.warn("Validation errors for request");
             return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(errors),
@@ -110,7 +129,7 @@ public class CreateRubricHandler implements DBHandler {
         JsonObject output = new JsonObject();
         AJEntityRubric.INSERT_RUBRIC_FORBIDDEN_FIELDS.stream()
             .filter(invalidField -> input.getValue(invalidField) != null)
-            .forEach(invalidField -> output.put(invalidField, "Field not allowed"));
+            .forEach(invalidField -> output.put(invalidField, RESOURCE_BUNDLE.getString("field.not.allowed")));
         return output.isEmpty() ? null : output;
     }
 

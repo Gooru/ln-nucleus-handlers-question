@@ -78,6 +78,14 @@ public interface FieldValidator {
     static boolean validateIntegerIfPresent(Object o) {
         return o == null || o instanceof Integer;
     }
+    
+    static boolean validateDoubleIfPresent(Object o) {
+        boolean result = (o == null || o instanceof Double);
+        if (!result) {
+            result = validateIntegerIfPresent(o);
+        }
+        return result;
+    }
 
     static boolean validateUuid(Object o) {
         try {
@@ -88,7 +96,7 @@ public interface FieldValidator {
         }
     }
 
-    static boolean validateUuidIfPresent(String o) {
+    static boolean validateUuidIfPresent(Object o) {
         return o == null || validateUuid(o);
     }
 

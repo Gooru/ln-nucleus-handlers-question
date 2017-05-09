@@ -29,7 +29,6 @@ public class AJEntityRubric extends Model {
     public static final String DESCRIPTION = "description";
     public static final String CATEGORIES = "categories";
     public static final String FEEDBACK_GUIDANCE = "feedback_guidance";
-    public static final String TOTAL_POINTS = "total_points";
     public static final String OVERALL_FEEDBACK_REQUIRED = "overall_feedback_required";
     public static final String CREATOR_ID = "creator_id";
     public static final String MODIFIER_ID = "modifier_id";
@@ -42,6 +41,17 @@ public class AJEntityRubric extends Model {
     public static final String TAXONOMY = "taxonomy";
     public static final String GUT_CODES = "gut_codes";
     public static final String THUMBNAIL = "thumbnail";
+    public static final String COURSE_ID = "course_id";
+    public static final String UNIT_ID = "unit_id";
+    public static final String LESSON_ID = "lesson_id";
+    public static final String COLLECTION_ID = "collection_id";
+    public static final String CONTENT_ID = "content_id";
+    public static final String IS_RUBRIC = "is_rubric";
+    public static final String SCORING = "scoring";
+    public static final String MIN_SCORE = "min_score";
+    public static final String MAX_SCORE = "max_score";
+    public static final String INCREMENT = "increment";
+    public static final String GRADER = "grader";
     public static final String CREATED_AT = "created_at";
     public static final String UPDATED_AT = "updated_at";
     public static final String TENANT = "tenant";
@@ -52,51 +62,73 @@ public class AJEntityRubric extends Model {
 
     public static final String DUPLICATE_IDS = "duplicate_ids";
 
+    public static final List<String> VALID_GRADER = Arrays.asList("Self", "Teacher");
+
     public static final String FETCH_RUBRIC =
-        "SELECT id, title, url, is_remote, description, categories, feedback_guidance, total_points, overall_feedback_required,"
+        "SELECT id, title, url, is_remote, description, categories, feedback_guidance, overall_feedback_required,"
+            + " is_rubric, course_id, unit_id, lesson_id, collection_id, content_id, scoring, min_score, max_score, increment,"
             + " creator_id, modifier_id, original_creator_id, original_rubric_id, parent_rubric_id, publish_date, publish_status, metadata, taxonomy,"
             + " gut_codes, thumbnail, created_at, updated_at, tenant, tenant_root, visible_on_profile, is_deleted, creator_system FROM rubric"
             + " WHERE id = ?::uuid AND is_deleted = false";
-    
+
     public static final String FETCH_RUBRIC_SUMMARY =
-        "SELECT id, title, url, is_remote, description, feedback_guidance, total_points, overall_feedback_required,"
-            + " creator_id, metadata, taxonomy, gut_codes, thumbnail FROM rubric WHERE id = ?::uuid AND is_deleted = false";
-    
+        "SELECT id, title, url, is_remote, description, feedback_guidance, overall_feedback_required,"
+            + " is_rubric, course_id, unit_id, lesson_id, collection_id, content_id, scoring, min_score, max_score, increment,"
+            + " creator_id, metadata, taxonomy, gut_codes, thumbnail FROM rubric WHERE content_id = ?::uuid AND is_deleted = false";
+
     public static final String SELECT_DUPLICATE =
         "SELECT id FROM rubric WHERE lower(url) = ? AND tenant = ?::uuid AND is_deleted = false AND original_rubric_id IS NULL";
-    
-    public static final String SELECT_QUESTION_FOR_RUBRIC =
-        "SELECT id FROM content WHERE rubric_id = ?::uuid AND content_format = question AND is_deleted = false";
-    
+
     public static final String VALIDATE_EXISTS_NOT_DELETED =
-        "SELECT id, url, is_remote, creator_id, original_rubric_id FROM rubric WHERE id = ?::uuid AND is_deleted = false";
-    
-    public static final String UPDATE_RUBRIC_MARK_DELETED =
-        "is_deleted = true, modifier_id = ?::uuid";
-    
-    public static final String UPDATE_RUBRIC_MARK_DELETED_CONDITION = "rubric_id = ?::uuid";
-    
-    private static final List<String> INSERT_RUBRIC_ALLOWED_FIELDS =
-        Arrays.asList(TITLE, DESCRIPTION, METADATA, TAXONOMY, THUMBNAIL);
-    
+        "SELECT id, url, is_remote, creator_id, original_rubric_id, content_id, is_rubric FROM rubric WHERE id = ?::uuid AND is_deleted = false";
+
+    public static final String SELECT_EXISTING_RUBRIC_FOR_QUESTION =
+        "SELECT id FROM rubric WHERE content_id = ?::uuid AND is_deleted = false";
+
+    public static final String UPDATE_RUBRIC_MARK_DELETED = "is_deleted = true, modifier_id = ?::uuid";
+
+    public static final String UPDATE_RUBRIC_MARK_DELETED_CONDITION = "id = ?::uuid";
+
+    // Rubric ON Fields
+
+    private static final List<String> INSERT_RUBRIC_ON_MANDATORY_FIELDS = Arrays.asList(TITLE, IS_RUBRIC);
+
+    private static final List<String> INSERT_RUBRIC_ON_ALLOWED_FIELDS = Arrays.asList(TITLE, DESCRIPTION, METADATA,
+        TAXONOMY, THUMBNAIL, IS_RUBRIC, OVERALL_FEEDBACK_REQUIRED, FEEDBACK_GUIDANCE, GRADER);
+
     private static final List<String> UPDATE_RUBRIC_ALLOWED_FIELDS =
-        Arrays.asList(TITLE, DESCRIPTION, METADATA, TAXONOMY, THUMBNAIL, URL, IS_REMOTE, FEEDBACK_GUIDANCE,
-            OVERALL_FEEDBACK_REQUIRED, TOTAL_POINTS, CATEGORIES, VISIBLE_ON_PROFILE);
+        Arrays.asList(TITLE, DESCRIPTION, METADATA, TAXONOMY, THUMBNAIL, URL, IS_REMOTE, FEEDBACK_GUIDANCE, SCORING,
+            MIN_SCORE, MAX_SCORE, INCREMENT, GRADER, OVERALL_FEEDBACK_REQUIRED, CATEGORIES, VISIBLE_ON_PROFILE);
 
-    private static final List<String> INSERT_RUBRIC_MANDATORY_FIELDS = Arrays.asList(TITLE);
+    public static final List<String> FETCH_RUBRIC_ON_FIELDS =
+        Arrays.asList(ID, TITLE, URL, IS_REMOTE, DESCRIPTION, IS_RUBRIC, GRADER, CATEGORIES, FEEDBACK_GUIDANCE,
+            OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID,
+            PARENT_RUBRIC_ID, PUBLISH_DATE, PUBLISH_STATUS, METADATA, TAXONOMY, GUT_CODES, THUMBNAIL, CREATED_AT,
+            UPDATED_AT, TENANT, TENANT_ROOT, VISIBLE_ON_PROFILE, IS_DELETED, CREATOR_SYSTEM);
 
-    public static final List<String> INSERT_RUBRIC_FORBIDDEN_FIELDS = Arrays.asList(ID, URL, IS_REMOTE, CATEGORIES,
-        CREATED_AT, UPDATED_AT, CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, PARENT_RUBRIC_ID,
-        GUT_CODES, PUBLISH_DATE, IS_DELETED, VISIBLE_ON_PROFILE, TENANT, TENANT_ROOT);
+    // Rubric OFF Fields
 
-    public static final List<String> FETCH_RUBRIC_FIELDS = Arrays.asList(ID, TITLE, URL, IS_REMOTE, DESCRIPTION,
-        CATEGORIES, FEEDBACK_GUIDANCE, TOTAL_POINTS, OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, MODIFIER_ID,
-        ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, PARENT_RUBRIC_ID, PUBLISH_DATE, PUBLISH_STATUS, METADATA, TAXONOMY,
-        GUT_CODES, THUMBNAIL, CREATED_AT, UPDATED_AT, TENANT, TENANT_ROOT, VISIBLE_ON_PROFILE, IS_DELETED, CREATOR_SYSTEM);
-    
-    public static final List<String> RUBRIC_SUMMARY =
-        Arrays.asList(ID, TITLE, URL, IS_REMOTE, DESCRIPTION, FEEDBACK_GUIDANCE, TOTAL_POINTS,
-            OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, METADATA, TAXONOMY, GUT_CODES, THUMBNAIL);
+    private static final List<String> INSERT_RUBRIC_OFF_MANDATORY_FIELDS =
+        Arrays.asList(IS_RUBRIC, COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID, CONTENT_ID);
+
+    private static final List<String> INSERT_RUBRIC_OFF_ALLOWED_FIELDS = Arrays.asList(IS_RUBRIC,
+        OVERALL_FEEDBACK_REQUIRED, FEEDBACK_GUIDANCE, SCORING, MIN_SCORE, MAX_SCORE, INCREMENT, GRADER);
+
+    private static final List<String> ASSOCIATE_ALLOWED_FIELDS =
+        Arrays.asList(COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID);
+
+    public static final List<String> FETCH_RUBRIC_OFF_FIELDS = Arrays.asList(ID, IS_RUBRIC, COURSE_ID, UNIT_ID,
+        LESSON_ID, COLLECTION_ID, CONTENT_ID, SCORING, MIN_SCORE, MAX_SCORE, INCREMENT, GRADER, FEEDBACK_GUIDANCE,
+        OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, MODIFIER_ID, CREATED_AT, UPDATED_AT, TENANT, TENANT_ROOT);
+
+    public static final List<String> INSERT_RUBRIC_FORBIDDEN_FIELDS =
+        Arrays.asList(ID, URL, IS_REMOTE, CATEGORIES, CREATED_AT, UPDATED_AT, CREATOR_ID, MODIFIER_ID,
+            ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, PARENT_RUBRIC_ID, COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID,
+            CONTENT_ID, GUT_CODES, PUBLISH_DATE, IS_DELETED, VISIBLE_ON_PROFILE, TENANT, TENANT_ROOT);
+
+    public static final List<String> RUBRIC_SUMMARY = Arrays.asList(ID, TITLE, URL, IS_REMOTE, DESCRIPTION,
+        FEEDBACK_GUIDANCE, IS_RUBRIC, COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID, CONTENT_ID, SCORING, MIN_SCORE,
+        MAX_SCORE, INCREMENT, OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, METADATA, TAXONOMY, GUT_CODES, THUMBNAIL);
 
     private static final Map<String, FieldValidator> validatorRegistry;
     private static final Map<String, FieldConverter> converterRegistry;
@@ -121,8 +153,13 @@ public class AJEntityRubric extends Model {
         converterMap.put(GUT_CODES, (fieldValue -> FieldConverter.convertFieldToTextArray((String) fieldValue)));
         converterMap.put(TAXONOMY, (FieldConverter::convertFieldToJson));
         converterMap.put(CATEGORIES, (FieldConverter::convertFieldToJson));
-        converterMap.put(FEEDBACK_GUIDANCE, (fieldValue -> FieldConverter.convertEmptyStringToNull((String) fieldValue)));
-
+        converterMap.put(FEEDBACK_GUIDANCE,
+            (fieldValue -> FieldConverter.convertEmptyStringToNull((String) fieldValue)));
+        converterMap.put(COURSE_ID, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
+        converterMap.put(UNIT_ID, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
+        converterMap.put(LESSON_ID, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
+        converterMap.put(COLLECTION_ID, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
+        converterMap.put(CONTENT_ID, (fieldValue -> FieldConverter.convertFieldToUuid((String) fieldValue)));
         return Collections.unmodifiableMap(converterMap);
     }
 
@@ -140,10 +177,20 @@ public class AJEntityRubric extends Model {
         validatorMap.put(URL, (value) -> FieldValidator.validateStringIfPresent(value, 2000));
         validatorMap.put(IS_REMOTE, FieldValidator::validateBooleanIfPresent);
         validatorMap.put(FEEDBACK_GUIDANCE, (value) -> FieldValidator.validateStringAllowNullOrEmpty(value, 5000));
-        validatorMap.put(TOTAL_POINTS, FieldValidator::validateIntegerIfPresent);
         validatorMap.put(OVERALL_FEEDBACK_REQUIRED, FieldValidator::validateBooleanIfPresent);
         validatorMap.put(CATEGORIES, FieldValidator::validateJsonArrayIfPresent);
         validatorMap.put(VISIBLE_ON_PROFILE, FieldValidator::validateBooleanIfPresent);
+        validatorMap.put(COURSE_ID, (FieldValidator::validateUuidIfPresent));
+        validatorMap.put(UNIT_ID, (FieldValidator::validateUuidIfPresent));
+        validatorMap.put(LESSON_ID, (FieldValidator::validateUuidIfPresent));
+        validatorMap.put(COLLECTION_ID, (FieldValidator::validateUuidIfPresent));
+        validatorMap.put(CONTENT_ID, (FieldValidator::validateUuidIfPresent));
+        validatorMap.put(IS_RUBRIC, FieldValidator::validateBoolean);
+        validatorMap.put(SCORING, FieldValidator::validateBooleanIfPresent);
+        validatorMap.put(MIN_SCORE, FieldValidator::validateIntegerIfPresent);
+        validatorMap.put(MAX_SCORE, FieldValidator::validateIntegerIfPresent);
+        validatorMap.put(INCREMENT, FieldValidator::validateDoubleIfPresent);
+        validatorMap.put(GRADER, (value) -> (value != null && VALID_GRADER.contains((String) value)));
         return Collections.unmodifiableMap(validatorMap);
     }
 
@@ -169,22 +216,41 @@ public class AJEntityRubric extends Model {
         }
     }
 
-    public static FieldSelector createFieldSelector() {
+    public static FieldSelector createRubricOnFieldSelector() {
         return new FieldSelector() {
             @Override
             public Set<String> allowedFields() {
-                return Collections.unmodifiableSet(new HashSet<>(INSERT_RUBRIC_ALLOWED_FIELDS));
+                return Collections.unmodifiableSet(new HashSet<>(INSERT_RUBRIC_ON_ALLOWED_FIELDS));
             }
 
             @Override
             public Set<String> mandatoryFields() {
-                return Collections.unmodifiableSet(new HashSet<String>(INSERT_RUBRIC_MANDATORY_FIELDS));
+                return Collections.unmodifiableSet(new HashSet<String>(INSERT_RUBRIC_ON_MANDATORY_FIELDS));
             }
         };
     }
-    
+
+    public static FieldSelector createRubricOffFieldSelector() {
+        return new FieldSelector() {
+
+            @Override
+            public Set<String> allowedFields() {
+                return Collections.unmodifiableSet(new HashSet<>(INSERT_RUBRIC_OFF_ALLOWED_FIELDS));
+            }
+
+            @Override
+            public Set<String> mandatoryFields() {
+                return Collections.unmodifiableSet(new HashSet<String>(INSERT_RUBRIC_OFF_MANDATORY_FIELDS));
+            }
+        };
+    }
+
     public static FieldSelector updateFieldSelector() {
         return () -> Collections.unmodifiableSet(new HashSet<>(UPDATE_RUBRIC_ALLOWED_FIELDS));
+    }
+
+    public static FieldSelector associateFieldSelector() {
+        return () -> Collections.unmodifiableSet(new HashSet<>(ASSOCIATE_ALLOWED_FIELDS));
     }
 
     public void setModifierId(String modifier) {
@@ -202,9 +268,29 @@ public class AJEntityRubric extends Model {
     public void setTenantRoot(String tenantRoot) {
         setFieldUsingConverter(TENANT_ROOT, tenantRoot);
     }
-    
+
     public void setGutCodes(String gutCodes) {
         setFieldUsingConverter(GUT_CODES, gutCodes);
+    }
+
+    public void setCourseId(String courseId) {
+        setFieldUsingConverter(COURSE_ID, courseId);
+    }
+
+    public void setUnitId(String unitId) {
+        setFieldUsingConverter(UNIT_ID, unitId);
+    }
+
+    public void setLessonId(String lessonId) {
+        setFieldUsingConverter(LESSON_ID, lessonId);
+    }
+
+    public void setCollectionId(String collectionId) {
+        setFieldUsingConverter(COLLECTION_ID, collectionId);
+    }
+
+    public void setContentId(String contentId) {
+        setFieldUsingConverter(CONTENT_ID, contentId);
     }
 
     private void setFieldUsingConverter(String fieldName, Object fieldValue) {

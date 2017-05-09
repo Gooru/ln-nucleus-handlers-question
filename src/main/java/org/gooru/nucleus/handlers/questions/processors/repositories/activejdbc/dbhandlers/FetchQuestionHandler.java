@@ -55,20 +55,14 @@ class FetchQuestionHandler implements DBHandler {
                 ExecutionResult.ExecutionStatus.FAILED);
         }
         question = questions.get(0);
-        
+
         if (AJEntityQuestion.RUBRIC_ASSOCIATION_ALLOWED_TYPES
             .contains(question.getString(AJEntityQuestion.CONTENT_SUBFORMAT))) {
-            String rubricId = question.getString(AJEntityQuestion.RUBRIC_ID);
-            if (rubricId != null) {
-                LazyList<AJEntityRubric> rubrics = AJEntityRubric.findBySQL(AJEntityRubric.FETCH_RUBRIC_SUMMARY, rubricId);
-                
-                if (rubrics.size() < 1) {
-                    LOGGER.warn("Rubric id: {} not present in DB", rubricId);
-                    return new ExecutionResult<>(MessageResponseFactory.createInternalErrorResponse(
-                        RESOURCE_BUNDLE.getString("rubric.not.found")), ExecutionResult.ExecutionStatus.FAILED);
-                }
-                
-                rubric = rubrics.get(0);
+            LazyList<AJEntityRubric> rubrics =
+                AJEntityRubric.findBySQL(AJEntityRubric.FETCH_RUBRIC_SUMMARY, context.questionId());
+
+            if (rubrics != null && !rubrics.isEmpty()) {
+                this.rubric = rubrics.get(0);
             }
         }
         return AuthorizerBuilder.buildTenantAuthorizer(this.context).authorize(question);
@@ -80,7 +74,7 @@ class FetchQuestionHandler implements DBHandler {
         JsonObject response = new JsonObject(JsonFormatterBuilder
             .buildSimpleJsonFormatter(false, AJEntityQuestion.FETCH_QUESTION_FIELDS).toJson(this.question));
 
-        if (rubric != null) {
+        if (this.rubric != null) {
             response.put(AJEntityQuestion.RUBRIC, new JsonObject(JsonFormatterBuilder
                 .buildSimpleJsonFormatter(false, AJEntityRubric.RUBRIC_SUMMARY).toJson(this.rubric)));
         } else {

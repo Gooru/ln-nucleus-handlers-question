@@ -73,6 +73,7 @@ public class AssociateRubricWithQuestionHandler implements DBHandler {
                 ExecutionResult.ExecutionStatus.FAILED);
         }
 
+        //Verify if type of question is allowed for rubric association.
         this.question = questions.get(0);
         if (!AJEntityQuestion.RUBRIC_ASSOCIATION_ALLOWED_TYPES
             .contains(this.question.getString(AJEntityQuestion.CONTENT_SUBFORMAT))) {
@@ -83,6 +84,7 @@ public class AssociateRubricWithQuestionHandler implements DBHandler {
                 ExecutionResult.ExecutionStatus.FAILED);
         }
 
+        //Rubric shuold be present in DB
         LazyList<AJEntityRubric> rubrics =
             AJEntityRubric.findBySQL(AJEntityRubric.VALIDATE_EXISTS_NOT_DELETED, context.rubricId());
         // Rubric should be present in DB
@@ -93,13 +95,18 @@ public class AssociateRubricWithQuestionHandler implements DBHandler {
                 ExecutionResult.ExecutionStatus.FAILED);
         }
         this.rubric = rubrics.get(0);
-
-        if (this.rubric.getString(AJEntityRubric.ORIGINAL_RUBRIC_ID) == null) {
-            LOGGER.warn("original rubric cannot be associated");
-            return new ExecutionResult<>(
-                MessageResponseFactory
-                    .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("orig.rubric.association.not.allowed")),
-                ExecutionResult.ExecutionStatus.FAILED);
+        
+        // If the rubric is ON it should NOT be original rubric. The rule is to
+        // associate only copy of the rubric if the rubric is ON
+        boolean isRubric = this.rubric.getBoolean(AJEntityRubric.IS_RUBRIC);
+        if (isRubric) {
+            if (this.rubric.getString(AJEntityRubric.ORIGINAL_RUBRIC_ID) == null) {
+                LOGGER.warn("original rubric cannot be associated");
+                return new ExecutionResult<>(
+                    MessageResponseFactory
+                        .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("orig.rubric.association.not.allowed")),
+                    ExecutionResult.ExecutionStatus.FAILED);
+            }
         }
         
         if (!authorized()) {
@@ -115,15 +122,29 @@ public class AssociateRubricWithQuestionHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-        String existingRubricId = this.question.getString(AJEntityQuestion.RUBRIC_ID);
-        if (existingRubricId != null) {
-            int count = AJEntityRubric.update(AJEntityRubric.UPDATE_RUBRIC_MARK_DELETED,
-                AJEntityRubric.UPDATE_RUBRIC_MARK_DELETED_CONDITION, context.userId(), context.rubricId());
-            LOGGER.debug("existing rubric '{}' is marked as deleted", existingRubricId);
+        
+        // check if the question has already associated rubric
+        // if yes, mark it as deleted.
+        LazyList<AJEntityRubric> existingRubrics =
+            AJEntityRubric.findBySQL(AJEntityRubric.SELECT_EXISTING_RUBRIC_FOR_QUESTION, context.questionId());
+        if (existingRubrics.size() >= 1) {
+            AJEntityRubric existingRubric = existingRubrics.get(0);
+            String existingRubricId = existingRubric.getString(AJEntityRubric.ID);
+            //Ignore if the existing rubric and new rubric are same
+            if(!existingRubricId.equalsIgnoreCase(context.rubricId())) {
+                AJEntityRubric.update(AJEntityRubric.UPDATE_RUBRIC_MARK_DELETED,
+                    AJEntityRubric.UPDATE_RUBRIC_MARK_DELETED_CONDITION, context.userId(), existingRubricId);
+                LOGGER.debug("existing rubric '{}' is marked as deleted", existingRubricId);
+            }
         }
-
-        this.question.setRubricId(context.rubricId());
-        if (!this.question.save()) {
+        
+        this.rubric.setCourseId(this.question.getCourseId());
+        this.rubric.setUnitId(this.question.getUnitId());
+        this.rubric.setLessonId(this.question.getLessonId());
+        this.rubric.setCollectionId(this.question.getCollectionId());
+        this.rubric.setContentId(context.questionId());
+        
+        if (!this.rubric.save()) {
             LOGGER.debug("error while associating rubric '{}' to question '{}'", context.rubricId(),
                 context.questionId());
             return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()),
