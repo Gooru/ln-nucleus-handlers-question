@@ -48,7 +48,6 @@ public class AJEntityRubric extends Model {
     public static final String CONTENT_ID = "content_id";
     public static final String IS_RUBRIC = "is_rubric";
     public static final String SCORING = "scoring";
-    public static final String MIN_SCORE = "min_score";
     public static final String MAX_SCORE = "max_score";
     public static final String INCREMENT = "increment";
     public static final String GRADER = "grader";
@@ -66,14 +65,14 @@ public class AJEntityRubric extends Model {
 
     public static final String FETCH_RUBRIC =
         "SELECT id, title, url, is_remote, description, categories, feedback_guidance, overall_feedback_required,"
-            + " is_rubric, course_id, unit_id, lesson_id, collection_id, content_id, scoring, min_score, max_score, increment,"
+            + " is_rubric, course_id, unit_id, lesson_id, collection_id, content_id, scoring, max_score, increment,"
             + " creator_id, modifier_id, original_creator_id, original_rubric_id, parent_rubric_id, publish_date, publish_status, metadata, taxonomy,"
             + " gut_codes, thumbnail, created_at, updated_at, tenant, tenant_root, visible_on_profile, is_deleted, creator_system FROM rubric"
             + " WHERE id = ?::uuid AND is_deleted = false";
 
     public static final String FETCH_RUBRIC_SUMMARY =
         "SELECT id, title, url, is_remote, description, feedback_guidance, overall_feedback_required,"
-            + " is_rubric, course_id, unit_id, lesson_id, collection_id, content_id, scoring, min_score, max_score, increment,"
+            + " is_rubric, course_id, unit_id, lesson_id, collection_id, content_id, scoring, max_score, increment,"
             + " creator_id, metadata, taxonomy, gut_codes, thumbnail FROM rubric WHERE content_id = ?::uuid AND is_deleted = false";
 
     public static final String SELECT_DUPLICATE =
@@ -98,7 +97,7 @@ public class AJEntityRubric extends Model {
 
     private static final List<String> UPDATE_RUBRIC_ALLOWED_FIELDS =
         Arrays.asList(TITLE, DESCRIPTION, METADATA, TAXONOMY, THUMBNAIL, URL, IS_REMOTE, FEEDBACK_GUIDANCE, SCORING,
-            MIN_SCORE, MAX_SCORE, INCREMENT, GRADER, OVERALL_FEEDBACK_REQUIRED, CATEGORIES, VISIBLE_ON_PROFILE);
+            MAX_SCORE, INCREMENT, GRADER, OVERALL_FEEDBACK_REQUIRED, CATEGORIES, VISIBLE_ON_PROFILE);
 
     public static final List<String> FETCH_RUBRIC_ON_FIELDS =
         Arrays.asList(ID, TITLE, URL, IS_REMOTE, DESCRIPTION, IS_RUBRIC, GRADER, CATEGORIES, FEEDBACK_GUIDANCE,
@@ -112,13 +111,13 @@ public class AJEntityRubric extends Model {
         Arrays.asList(IS_RUBRIC, COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID, CONTENT_ID);
 
     private static final List<String> INSERT_RUBRIC_OFF_ALLOWED_FIELDS = Arrays.asList(IS_RUBRIC,
-        OVERALL_FEEDBACK_REQUIRED, FEEDBACK_GUIDANCE, SCORING, MIN_SCORE, MAX_SCORE, INCREMENT, GRADER);
+        OVERALL_FEEDBACK_REQUIRED, FEEDBACK_GUIDANCE, SCORING, MAX_SCORE, INCREMENT, GRADER);
 
     private static final List<String> ASSOCIATE_ALLOWED_FIELDS =
         Arrays.asList(COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID);
 
     public static final List<String> FETCH_RUBRIC_OFF_FIELDS = Arrays.asList(ID, IS_RUBRIC, COURSE_ID, UNIT_ID,
-        LESSON_ID, COLLECTION_ID, CONTENT_ID, SCORING, MIN_SCORE, MAX_SCORE, INCREMENT, GRADER, FEEDBACK_GUIDANCE,
+        LESSON_ID, COLLECTION_ID, CONTENT_ID, SCORING, MAX_SCORE, INCREMENT, GRADER, FEEDBACK_GUIDANCE,
         OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, MODIFIER_ID, CREATED_AT, UPDATED_AT, TENANT, TENANT_ROOT);
 
     public static final List<String> INSERT_RUBRIC_FORBIDDEN_FIELDS =
@@ -127,7 +126,7 @@ public class AJEntityRubric extends Model {
             CONTENT_ID, GUT_CODES, PUBLISH_DATE, IS_DELETED, VISIBLE_ON_PROFILE, TENANT, TENANT_ROOT);
 
     public static final List<String> RUBRIC_SUMMARY = Arrays.asList(ID, TITLE, URL, IS_REMOTE, DESCRIPTION,
-        FEEDBACK_GUIDANCE, IS_RUBRIC, COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID, CONTENT_ID, SCORING, MIN_SCORE,
+        FEEDBACK_GUIDANCE, IS_RUBRIC, COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID, CONTENT_ID, SCORING, 
         MAX_SCORE, INCREMENT, OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, METADATA, TAXONOMY, GUT_CODES, THUMBNAIL);
 
     private static final Map<String, FieldValidator> validatorRegistry;
@@ -187,7 +186,6 @@ public class AJEntityRubric extends Model {
         validatorMap.put(CONTENT_ID, (FieldValidator::validateUuidIfPresent));
         validatorMap.put(IS_RUBRIC, FieldValidator::validateBoolean);
         validatorMap.put(SCORING, FieldValidator::validateBooleanIfPresent);
-        validatorMap.put(MIN_SCORE, FieldValidator::validateIntegerIfPresent);
         validatorMap.put(MAX_SCORE, FieldValidator::validateIntegerIfPresent);
         validatorMap.put(INCREMENT, FieldValidator::validateDoubleIfPresent);
         validatorMap.put(GRADER, (value) -> (value != null && VALID_GRADER.contains((String) value)));
