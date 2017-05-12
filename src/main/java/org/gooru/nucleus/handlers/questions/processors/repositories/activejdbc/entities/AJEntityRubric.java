@@ -87,6 +87,15 @@ public class AJEntityRubric extends Model {
     public static final String UPDATE_RUBRIC_MARK_DELETED = "is_deleted = true, modifier_id = ?::uuid";
 
     public static final String UPDATE_RUBRIC_MARK_DELETED_CONDITION = "id = ?::uuid";
+    
+    public static final String COPY_RUBRIC =
+        "INSERT INTO rubric(id, title, url, is_remote, description, categories, feedback_guidance, overall_feedback_required,"
+        + " creator_id, modifier_id, original_creator_id, original_rubric_id, parent_rubric_id, metadata, taxonomy,"
+        + " gut_codes, thumbnail, created_at, updated_at, tenant, tenant_root, visible_on_profile, is_deleted, creator_system) SELECT ?, title,"
+        + " url, is_remote, description, categories, feedback_guidance, overall_feedback_required, ?::uuid, ?::uuid,"
+        + " coalesce(original_creator_id,creator_id) as original_creator_id, coalesce(original_rubric_id,?::uuid) as original_rubric_id, ?::uuid,"
+        + " metadata, taxonomy, gut_codes, thumbnail, created_at, updated_at, ?::uuid, ?::uuid, visible_on_profile, is_deleted,"
+        + " creator_system FROM rubric WHERE id = ?::uuid AND is_deleted = false";
 
     // Rubric ON Fields
 
@@ -107,8 +116,7 @@ public class AJEntityRubric extends Model {
 
     // Rubric OFF Fields
 
-    private static final List<String> INSERT_RUBRIC_OFF_MANDATORY_FIELDS =
-        Arrays.asList(IS_RUBRIC, COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID, CONTENT_ID);
+    private static final List<String> INSERT_RUBRIC_OFF_MANDATORY_FIELDS = Arrays.asList(IS_RUBRIC);
 
     private static final List<String> INSERT_RUBRIC_OFF_ALLOWED_FIELDS = Arrays.asList(IS_RUBRIC,
         OVERALL_FEEDBACK_REQUIRED, FEEDBACK_GUIDANCE, SCORING, MAX_SCORE, INCREMENT, GRADER);

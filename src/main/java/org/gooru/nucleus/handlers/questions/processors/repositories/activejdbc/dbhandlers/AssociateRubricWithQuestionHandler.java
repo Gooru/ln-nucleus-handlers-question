@@ -1,6 +1,7 @@
 package org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.dbhandlers;
 
 import java.util.ResourceBundle;
+import java.util.UUID;
 
 import org.gooru.nucleus.handlers.questions.constants.MessageConstants;
 import org.gooru.nucleus.handlers.questions.processors.ProcessorContext;
@@ -28,6 +29,7 @@ public class AssociateRubricWithQuestionHandler implements DBHandler {
     private final ProcessorContext context;
     private AJEntityQuestion question;
     private AJEntityRubric rubric;
+    private UUID copiedRubricId;
 
     public AssociateRubricWithQuestionHandler(ProcessorContext context) {
         this.context = context;
@@ -94,19 +96,27 @@ public class AssociateRubricWithQuestionHandler implements DBHandler {
                 MessageResponseFactory.createNotFoundResponse(RESOURCE_BUNDLE.getString("rubric.not.found")),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
-        this.rubric = rubrics.get(0);
-        
-        // If the rubric is ON it should NOT be original rubric. The rule is to
+        AJEntityRubric associatingRubric = rubrics.get(0);
+        // If the rubric is ON, create copy. The rule is to
         // associate only copy of the rubric if the rubric is ON
-        boolean isRubric = this.rubric.getBoolean(AJEntityRubric.IS_RUBRIC);
+        boolean isRubric = associatingRubric.getBoolean(AJEntityRubric.IS_RUBRIC);
         if (isRubric) {
-            if (this.rubric.getString(AJEntityRubric.ORIGINAL_RUBRIC_ID) == null) {
-                LOGGER.warn("original rubric cannot be associated");
-                return new ExecutionResult<>(
-                    MessageResponseFactory
-                        .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("orig.rubric.association.not.allowed")),
+            
+            copiedRubricId = UUID.randomUUID();
+
+            int count = Base.exec(AJEntityRubric.COPY_RUBRIC, copiedRubricId, context.userId(), context.userId(),
+                context.rubricId(), context.rubricId(), context.tenant(), context.tenantRoot(), context.rubricId());
+            if (count == 0) {
+                LOGGER.error("error while copying rubric");
+                return new ExecutionResult<>(MessageResponseFactory.createInternalErrorResponse(),
                     ExecutionResult.ExecutionStatus.FAILED);
             }
+            LOGGER.debug("rubric is ON, created copy '{}'", copiedRubricId.toString());
+            this.rubric = AJEntityRubric.findById(copiedRubricId);
+        } else {
+            //Rubric is OFF, so no copy
+            LOGGER.debug("rubric is OFF, No need to create copy");
+            this.rubric = associatingRubric;
         }
         
         if (!authorized()) {
@@ -145,17 +155,17 @@ public class AssociateRubricWithQuestionHandler implements DBHandler {
         this.rubric.setContentId(context.questionId());
         
         if (!this.rubric.save()) {
-            LOGGER.debug("error while associating rubric '{}' to question '{}'", context.rubricId(),
+            LOGGER.debug("error while associating rubric '{}' to question '{}'", this.rubric.getId().toString(),
                 context.questionId());
             return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
 
-        LOGGER.info("rubric:{} has been associated with question:{} successfully", context.rubricId(),
+        LOGGER.info("rubric:{} has been associated with question:{} successfully", this.rubric.getId().toString(),
             context.questionId());
         return new ExecutionResult<>(
             MessageResponseFactory.createNoContentResponse(RESOURCE_BUNDLE.getString("associated"), EventBuilderFactory
-                .getAssociateRubricWithQuestionEventBuilder(this.context.rubricId(), this.context.questionId())),
+                .getAssociateRubricWithQuestionEventBuilder(this.rubric.getId().toString(), this.context.questionId())),
             ExecutionResult.ExecutionStatus.SUCCESSFUL);
     }
 
