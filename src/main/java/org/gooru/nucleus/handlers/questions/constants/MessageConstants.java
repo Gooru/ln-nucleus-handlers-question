@@ -24,6 +24,7 @@ public final class MessageConstants {
     public static final String MSG_OP_QUESTION_CREATE = "question.create";
     public static final String MSG_OP_QUESTION_UPDATE = "question.update";
     public static final String MSG_OP_QUESTION_DELETE = "question.delete";
+    public static final String MSG_OP_QUESTION_GET_BULK = "bulk.question.get";
     
     public static final String MSG_OP_RUBRIC_GET = "rubric.get";
     public static final String MSG_OP_RUBRIC_CREATE = "rubric.create";

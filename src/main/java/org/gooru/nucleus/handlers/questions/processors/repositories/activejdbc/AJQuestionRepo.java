@@ -43,4 +43,9 @@ public class AJQuestionRepo implements QuestionRepo {
     public MessageResponse associateRubricWithQuestion() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildAssociateRubricWithQuestionHandler(context));
     }
+
+    @Override
+    public MessageResponse fetchBulkQuestions() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildFetchBulkQuestionsHandler(context));
+    }
 }

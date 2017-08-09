@@ -47,4 +47,8 @@ public final class DBHandlerBuilder {
     public static DBHandler buildAssociateRubricWithQuestionHandler(ProcessorContext context) {
         return new AssociateRubricWithQuestionHandler(context);
     }
+
+    public static DBHandler buildFetchBulkQuestionsHandler(ProcessorContext context) {
+        return new FetchBulkQuestionsHandler(context);
+    }
 }
