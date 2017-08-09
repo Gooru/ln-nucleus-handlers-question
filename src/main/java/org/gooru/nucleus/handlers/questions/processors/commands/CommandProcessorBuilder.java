@@ -53,6 +53,12 @@ public enum CommandProcessorBuilder {
             return new QuestionGetProcessor(context);
         }
     },
+    QUESTION_GET_BULK(MessageConstants.MSG_OP_QUESTION_GET_BULK) {
+        @Override
+        public Processor build(ProcessorContext context) {
+            return new QuestionGetBulkProcessor(context);
+        }
+    },
     RUBRIC_DELETE(MessageConstants.MSG_OP_RUBRIC_DELETE) {
         @Override
         public Processor build(ProcessorContext context) {

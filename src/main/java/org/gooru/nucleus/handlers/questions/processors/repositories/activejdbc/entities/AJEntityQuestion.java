@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.Set;
 
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.converters.ConverterRegistry;
@@ -16,17 +15,12 @@ import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.v
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.validators.ValidatorRegistry;
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.Table;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created by ashish on 11/1/16.
  */
 @Table("content")
 public class AJEntityQuestion extends Model {
-
-    private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
-    private static final Logger LOGGER = LoggerFactory.getLogger(AJEntityQuestion.class);
 
     // FIELDS
     private static final String ID = "id";
@@ -88,6 +82,13 @@ public class AJEntityQuestion extends Model {
     public static final String AUTH_FILTER = "id = ?::uuid and (owner_id = ?::uuid or collaborator ?? ?);";
     public static final String PUBLISHED_FILTER = "id = ?::uuid and publish_status = 'published'::publish_status_type;";
 
+    public static final String FETCH_QUESTIONS_BULK =
+        "select id, title, publish_date, publish_status, description, answer, metadata, taxonomy, "
+            + "hint_explanation_detail, thumbnail, narration, license, creator_id, content_subformat, "
+            + "visible_on_profile, course_id, unit_id, lesson_id, collection_id, original_creator_id, "
+            + "original_content_id, tenant, tenant_root from content where content_format = ?::content_format_type "
+            + "and id = ANY(?::uuid[]) and is_deleted = ?";
+    
     // TABLES
     public static final String TABLE_COURSE = "course";
     public static final String TABLE_COLLECTION = "collection";
@@ -105,6 +106,8 @@ public class AJEntityQuestion extends Model {
     private static final String INFO = "info";
     private static final String DISPLAY_GUIDE = "display_guide";
     private static final String ACCESSIBILITY = "accessibility";
+    
+    public static final String RESP_JSON_KEY_QUESTIONS = "questions";
 
     // FIELD LISTS
     public static final List<String> FETCH_QUESTION_FIELDS = Arrays
@@ -135,8 +138,6 @@ public class AJEntityQuestion extends Model {
     public static final List<String> RUBRIC_ASSOCIATION_ALLOWED_TYPES = Arrays.asList("open_ended_question"); 
     
     // TYPES
-    private static final String UUID_TYPE = "uuid";
-    private static final String JSONB_TYPE = "jsonb";
     private static final String CONTENT_FORMAT_TYPE = "content_format_type";
     private static final String CONTENT_SUBFORMAT_TYPE = "content_subformat_type";
 

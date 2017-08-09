@@ -15,4 +15,6 @@ public interface QuestionRepo {
     MessageResponse deleteQuestion();
     
     MessageResponse associateRubricWithQuestion();
+    
+    MessageResponse fetchBulkQuestions();
 }
