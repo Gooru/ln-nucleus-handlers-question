@@ -1,7 +1,7 @@
 package org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.dbhandlers;
 
-import java.util.List;
 import java.util.ResourceBundle;
+import java.util.UUID;
 
 import org.gooru.nucleus.handlers.questions.constants.MessageConstants;
 import org.gooru.nucleus.handlers.questions.processors.ProcessorContext;
@@ -12,7 +12,6 @@ import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
-import org.javalite.activejdbc.DBException;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,21 +19,25 @@ import org.slf4j.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Created by ashish on 26/1/16.
+ * @author szgooru Created On: 27-Feb-2017
  */
-public class DeleteQuestionHandler implements DBHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DeleteQuestionHandler.class);
+public class AssociateRubricWithQuestionHandler implements DBHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AssociateRubricWithQuestionHandler.class);
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
+
     private final ProcessorContext context;
     private AJEntityQuestion question;
+    private AJEntityRubric rubric;
+    private UUID copiedRubricId;
 
-    public DeleteQuestionHandler(ProcessorContext context) {
+    public AssociateRubricWithQuestionHandler(ProcessorContext context) {
         this.context = context;
     }
 
     @Override
     public ExecutionResult<MessageResponse> checkSanity() {
-        // There should be a question id present
+
         if (context.questionId() == null || context.questionId().isEmpty()) {
             LOGGER.warn("Missing question id");
             return new ExecutionResult<>(
@@ -42,12 +45,20 @@ public class DeleteQuestionHandler implements DBHandler {
                 ExecutionResult.ExecutionStatus.FAILED);
         }
 
-        if (context.userId() == null || context.userId().isEmpty()
+        if (context.rubricId() == null || context.rubricId().isEmpty()) {
+            LOGGER.warn("Missing rubric id");
+            return new ExecutionResult<>(
+                MessageResponseFactory.createInvalidRequestResponse(RESOURCE_BUNDLE.getString("missing.rubric.id")),
+                ExecutionResult.ExecutionStatus.FAILED);
+        }
+
+        if ((context.userId() == null) || context.userId().isEmpty()
             || context.userId().equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
             return new ExecutionResult<>(
                 MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("anonymous.user")),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
+
         return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
     }
 
@@ -64,9 +75,53 @@ public class DeleteQuestionHandler implements DBHandler {
                 ExecutionResult.ExecutionStatus.FAILED);
         }
 
+        //Verify if type of question is allowed for rubric association.
         this.question = questions.get(0);
+        if (!AJEntityQuestion.RUBRIC_ASSOCIATION_ALLOWED_TYPES
+            .contains(this.question.getString(AJEntityQuestion.CONTENT_SUBFORMAT))) {
+            LOGGER.warn("Rubric association is not allowed with question type");
+            return new ExecutionResult<>(
+                MessageResponseFactory
+                    .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("rubric.association.not.allowed")),
+                ExecutionResult.ExecutionStatus.FAILED);
+        }
+
+        //Rubric shuold be present in DB
+        LazyList<AJEntityRubric> rubrics =
+            AJEntityRubric.findBySQL(AJEntityRubric.VALIDATE_EXISTS_NOT_DELETED, context.rubricId());
+        // Rubric should be present in DB
+        if (rubrics.size() < 1) {
+            LOGGER.warn("Rubric id: {} not present in DB", context.rubricId());
+            return new ExecutionResult<>(
+                MessageResponseFactory.createNotFoundResponse(RESOURCE_BUNDLE.getString("rubric.not.found")),
+                ExecutionResult.ExecutionStatus.FAILED);
+        }
+        AJEntityRubric associatingRubric = rubrics.get(0);
+        // If the rubric is ON, create copy. The rule is to
+        // associate only copy of the rubric if the rubric is ON
+        boolean isRubric = associatingRubric.getBoolean(AJEntityRubric.IS_RUBRIC);
+        if (isRubric) {
+            
+            copiedRubricId = UUID.randomUUID();
+
+            int count = Base.exec(AJEntityRubric.COPY_RUBRIC, copiedRubricId, context.userId(), context.userId(),
+                context.rubricId(), context.rubricId(), context.tenant(), context.tenantRoot(), context.rubricId());
+            if (count == 0) {
+                LOGGER.error("error while copying rubric");
+                return new ExecutionResult<>(MessageResponseFactory.createInternalErrorResponse(),
+                    ExecutionResult.ExecutionStatus.FAILED);
+            }
+            LOGGER.debug("rubric is ON, created copy '{}'", copiedRubricId.toString());
+            this.rubric = AJEntityRubric.findById(copiedRubricId);
+        } else {
+            //Rubric is OFF, so no copy
+            LOGGER.debug("rubric is OFF, No need to create copy");
+            this.rubric = associatingRubric;
+        }
+        
         if (!authorized()) {
-            // Update is forbidden
+            // Association is forbidden
+            LOGGER.debug("user is not authorized to associate rubric to question:{}", context.questionId());
             return new ExecutionResult<>(
                 MessageResponseFactory
                     .createForbiddenResponse(RESOURCE_BUNDLE.getString("not.owner.collaborator.on.course.collection")),
@@ -77,42 +132,40 @@ public class DeleteQuestionHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-        /*
-         * First try to check whether this is the only OPEN_ENDED_QUESTION in
-         * the assessment , if so then need to update the grading from 'TEACHER'
-         * to 'SYSTEM'
-         */
-        if (this.question.get(AJEntityQuestion.CONTENT_SUBFORMAT)
-            .equals(AJEntityQuestion.OPEN_ENDED_QUESTION_SUBFORMAT)) {
-            ExecutionResult<MessageResponse> responseExecutionResult = adjustAssessmentGrading();
-            if (responseExecutionResult.hasFailed()) {
-                return responseExecutionResult;
+        
+        // check if the question has already associated rubric
+        // if yes, mark it as deleted.
+        LazyList<AJEntityRubric> existingRubrics =
+            AJEntityRubric.findBySQL(AJEntityRubric.SELECT_EXISTING_RUBRIC_FOR_QUESTION, context.questionId());
+        if (existingRubrics.size() >= 1) {
+            AJEntityRubric existingRubric = existingRubrics.get(0);
+            String existingRubricId = existingRubric.getString(AJEntityRubric.ID);
+            //Ignore if the existing rubric and new rubric are same
+            if(!existingRubricId.equalsIgnoreCase(context.rubricId())) {
+                AJEntityRubric.update(AJEntityRubric.UPDATE_RUBRIC_MARK_DELETED,
+                    AJEntityRubric.UPDATE_RUBRIC_MARK_DELETED_CONDITION, context.userId(), existingRubricId);
+                LOGGER.debug("existing rubric '{}' is marked as deleted", existingRubricId);
             }
         }
-        this.question.setModifierId(this.context.userId());
-        if (this.question.hasErrors()) {
+        
+        this.rubric.setCourseId(this.question.getCourseId());
+        this.rubric.setUnitId(this.question.getUnitId());
+        this.rubric.setLessonId(this.question.getLessonId());
+        this.rubric.setCollectionId(this.question.getCollectionId());
+        this.rubric.setContentId(context.questionId());
+        
+        if (!this.rubric.save()) {
+            LOGGER.debug("error while associating rubric '{}' to question '{}'", this.rubric.getId().toString(),
+                context.questionId());
             return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
 
-        this.question.setBoolean(AJEntityQuestion.IS_DELETED, true);
-
-        if (!this.question.save()) {
-            LOGGER.debug("Save errors");
-            return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(getModelErrors()),
-                ExecutionResult.ExecutionStatus.FAILED);
-        }
-        
-        // If the questions if OPEN_ENDED_QUESTION delete the associated rubric
-        if (this.question.get(AJEntityQuestion.CONTENT_SUBFORMAT)
-            .equals(AJEntityQuestion.OPEN_ENDED_QUESTION_SUBFORMAT)) {
-            AJEntityRubric.update("is_deleted = true, modifier_id = ?::uuid",
-                "content_id = ?::uuid AND is_deleted = false", context.userId(), context.questionId());
-        }
-        
+        LOGGER.info("rubric:{} has been associated with question:{} successfully", this.rubric.getId().toString(),
+            context.questionId());
         return new ExecutionResult<>(
-            MessageResponseFactory.createNoContentResponse(RESOURCE_BUNDLE.getString("deleted"),
-                EventBuilderFactory.getDeleteQuestionEventBuilder(this.context.questionId())),
+            MessageResponseFactory.createNoContentResponse(RESOURCE_BUNDLE.getString("associated"), EventBuilderFactory
+                .getAssociateRubricWithQuestionEventBuilder(this.rubric.getId().toString(), this.context.questionId())),
             ExecutionResult.ExecutionStatus.SUCCESSFUL);
     }
 
@@ -156,54 +209,6 @@ public class DeleteQuestionHandler implements DBHandler {
         }
 
         return false;
-    }
-
-    private ExecutionResult<MessageResponse> adjustAssessmentGrading() {
-        Object assessmentId = this.question.get(AJEntityQuestion.COLLECTION_ID);
-        boolean assessmentTimestampUpdated = false;
-        try {
-            if (assessmentId != null) {
-                Object countObject = Base.firstCell(AJEntityQuestion.IS_VALID_ASSESSMENT, assessmentId);
-                Long count = Long.valueOf(String.valueOf(countObject));
-                if (count > 0) {
-                    List assessmentQuestionList =
-                        Base.firstColumn(AJEntityQuestion.FETCH_ASSESSMENT_GRADING, assessmentId);
-                    if (assessmentQuestionList.size() == 1) {
-                        if (assessmentQuestionList.get(0).toString().equals(context.questionId())) {
-                            int rows = Base.exec(AJEntityQuestion.UPDATE_ASSESSMENT_GRADING, assessmentId);
-                            if (rows != 1) {
-                                LOGGER.warn(
-                                    "update of the assessment grading failed for assessment '{}' with question '{}'",
-                                    assessmentId, context.questionId());
-                                return new ExecutionResult<>(
-                                    MessageResponseFactory.createInternalErrorResponse(
-                                        RESOURCE_BUNDLE.getString("store.interaction.failed")),
-                                    ExecutionResult.ExecutionStatus.FAILED);
-                            }
-                            assessmentTimestampUpdated = true;
-                        }
-                    }
-                }
-            }
-            if (assessmentId != null && !assessmentTimestampUpdated) {
-                // Need to update the container update time
-                int rows = Base.exec(AJEntityQuestion.UPDATE_CONTAINER_TIMESTAMP, assessmentId);
-                if (rows != 1) {
-                    LOGGER.warn("update of the assessment timestamp failed for assessment '{}' with question '{}'",
-                        assessmentId, context.questionId());
-                    return new ExecutionResult<>(
-                        MessageResponseFactory
-                            .createInternalErrorResponse(RESOURCE_BUNDLE.getString("store.interaction.failed")),
-                        ExecutionResult.ExecutionStatus.FAILED);
-                }
-            }
-        } catch (DBException dbe) {
-            LOGGER.warn("Update of the assessment grading failed for assessment '{}' with question '{}'", assessmentId,
-                context.questionId(), dbe);
-            return new ExecutionResult<>(MessageResponseFactory.createInternalErrorResponse(
-                RESOURCE_BUNDLE.getString("store.interaction.failed")), ExecutionResult.ExecutionStatus.FAILED);
-        }
-        return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.SUCCESSFUL);
     }
 
     private JsonObject getModelErrors() {

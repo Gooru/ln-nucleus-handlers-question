@@ -1,16 +1,19 @@
 package org.gooru.nucleus.handlers.questions.processors;
 
+import static org.gooru.nucleus.handlers.questions.processors.utils.ValidationUtils.validateUser;
+
 import java.util.ResourceBundle;
-import java.util.UUID;
 
 import org.gooru.nucleus.handlers.questions.constants.MessageConstants;
-import org.gooru.nucleus.handlers.questions.processors.repositories.RepoBuilder;
+import org.gooru.nucleus.handlers.questions.processors.commands.CommandProcessorBuilder;
+import org.gooru.nucleus.handlers.questions.processors.exceptions.VersionDeprecatedException;
 import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
@@ -20,7 +23,7 @@ class MessageProcessor implements Processor {
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
     private final Message<Object> message;
     private String userId;
-    private JsonObject prefs;
+    private JsonObject session;
     private JsonObject request;
 
     MessageProcessor(Message<Object> message) {
@@ -29,34 +32,18 @@ class MessageProcessor implements Processor {
 
     @Override
     public MessageResponse process() {
-        MessageResponse result;
         try {
-            // Validate the message itself
             ExecutionResult<MessageResponse> validateResult = validateAndInitialize();
             if (validateResult.isCompleted()) {
                 return validateResult.result();
             }
 
             final String msgOp = message.headers().get(MessageConstants.MSG_HEADER_OP);
-            switch (msgOp) {
-            case MessageConstants.MSG_OP_QUESTION_CREATE:
-                result = processQuestionCreate();
-                break;
-            case MessageConstants.MSG_OP_QUESTION_GET:
-                result = processQuestionGet();
-                break;
-            case MessageConstants.MSG_OP_QUESTION_UPDATE:
-                result = processQuestionUpdate();
-                break;
-            case MessageConstants.MSG_OP_QUESTION_DELETE:
-                result = processQuestionDelete();
-                break;
-            default:
-                LOGGER.error("Invalid operation type passed in, not able to handle");
-                return MessageResponseFactory
-                    .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.operation"));
-            }
-            return result;
+            LOGGER.info("## Processing request:{}", msgOp);
+            return CommandProcessorBuilder.lookupBuilder(msgOp).build(createContext()).process();
+        } catch (VersionDeprecatedException e) {
+            LOGGER.error("Version is deprecated");
+            return MessageResponseFactory.createVersionDeprecatedResponse();
         } catch (Throwable e) {
             LOGGER.error("Unhandled exception in processing", e);
             return MessageResponseFactory.createInternalErrorResponse();
@@ -64,51 +51,18 @@ class MessageProcessor implements Processor {
 
     }
 
-    private MessageResponse processQuestionDelete() {
-        ProcessorContext context = createContext();
-        if (isIdInvalid(context)) {
-            return MessageResponseFactory
-                .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.question.id"));
-        }
-        return RepoBuilder.buildQuestionRepo(context).deleteQuestion();
-    }
-
-    private MessageResponse processQuestionUpdate() {
-        ProcessorContext context = createContext();
-        if (isIdInvalid(context)) {
-            return MessageResponseFactory
-                .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.question.id"));
-        }
-        return RepoBuilder.buildQuestionRepo(context).updateQuestion();
-    }
-
-    private MessageResponse processQuestionGet() {
-        ProcessorContext context = createContext();
-        if (isIdInvalid(context)) {
-            return MessageResponseFactory
-                .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.question.id"));
-        }
-        return RepoBuilder.buildQuestionRepo(context).fetchQuestion();
-    }
-
-    private MessageResponse processQuestionCreate() {
-        ProcessorContext context = createContext();
-
-        return RepoBuilder.buildQuestionRepo(context).createQuestion();
-    }
-
     private ProcessorContext createContext() {
-        String questionId = message.headers().get(MessageConstants.QUESTION_ID);
-
-        return new ProcessorContext(userId, prefs, request, questionId);
+        MultiMap headers = message.headers();
+        String questionId = headers.get(MessageConstants.QUESTION_ID);
+        String rubricId = headers.get(MessageConstants.RUBRIC_ID);
+        return new ProcessorContext(userId, session, request, questionId, rubricId, headers);
     }
 
     private ExecutionResult<MessageResponse> validateAndInitialize() {
         if (message == null || !(message.body() instanceof JsonObject)) {
             LOGGER.error("Invalid message received, either null or body of message is not JsonObject ");
-            return new ExecutionResult<>(
-                MessageResponseFactory
-                    .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("empty.payload.or.invalid.json")),
+            return new ExecutionResult<>(MessageResponseFactory
+                .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("empty.payload.or.invalid.json")),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
 
@@ -119,11 +73,11 @@ class MessageProcessor implements Processor {
                 MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("invalid.userid")),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
-        prefs = ((JsonObject) message.body()).getJsonObject(MessageConstants.MSG_KEY_PREFS);
+        session = ((JsonObject) message.body()).getJsonObject(MessageConstants.MSG_KEY_SESSION);
         request = ((JsonObject) message.body()).getJsonObject(MessageConstants.MSG_HTTP_BODY);
 
-        if (prefs == null || prefs.isEmpty()) {
-            LOGGER.error("Invalid preferences obtained, probably not authorized properly");
+        if (session == null || session.isEmpty()) {
+            LOGGER.error("Invalid session obtained, probably not authorized properly");
             return new ExecutionResult<>(
                 MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("incomplete.authorization")),
                 ExecutionResult.ExecutionStatus.FAILED);
@@ -135,35 +89,6 @@ class MessageProcessor implements Processor {
                 MessageResponseFactory.createInvalidRequestResponse(RESOURCE_BUNDLE.getString("empty.payload")),
                 ExecutionResult.ExecutionStatus.FAILED);
         }
-
-        // All is well, continue processing
         return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
     }
-
-    private boolean validateUser(String userId) {
-        return !(userId == null || userId.isEmpty())
-            && (userId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS) || validateUuid(userId));
-    }
-
-    private boolean isIdInvalid(ProcessorContext context) {
-        if (context.questionId() == null || context.questionId().isEmpty()) {
-            LOGGER.error("Invalid request, question id not available. Aborting");
-            return true;
-        }
-        return !validateUuid(context.questionId());
-    }
-
-    private boolean validateUuid(String uuidString) {
-        try {
-            UUID uuid = UUID.fromString(uuidString);
-            return true;
-        } catch (IllegalArgumentException e) {
-            LOGGER.error("Invalid request, id is not a valid uuid. Aborting");
-            return false;
-        } catch (Exception e) {
-            LOGGER.error("Invalid request, id is not a valid uuid. Aborting");
-            return false;
-        }
-    }
-
 }
