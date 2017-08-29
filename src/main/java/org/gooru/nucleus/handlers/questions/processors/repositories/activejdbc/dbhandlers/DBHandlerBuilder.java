@@ -22,10 +22,33 @@ public final class DBHandlerBuilder {
 
     public static DBHandler buildCreateQuestionHandler(ProcessorContext context) {
         return new CreateQuestionHandler(context);
-
     }
 
     public static DBHandler buildDeleteQuestionHandler(ProcessorContext context) {
         return new DeleteQuestionHandler(context);
+    }
+
+    public static DBHandler buildUpdateRubricHandler(ProcessorContext context) {
+        return new UpdateRubricHandler(context);
+    }
+
+    public static DBHandler buildFetchRubricHandler(ProcessorContext context) {
+        return new FetchRubricHandler(context);
+    }
+
+    public static DBHandler buildCreateRubricHandler(ProcessorContext context) {
+        return new CreateRubricHandler(context);
+    }
+
+    public static DBHandler buildDeleteRubricHandler(ProcessorContext context) {
+        return new DeleteRubricHandler(context);
+    }
+
+    public static DBHandler buildAssociateRubricWithQuestionHandler(ProcessorContext context) {
+        return new AssociateRubricWithQuestionHandler(context);
+    }
+
+    public static DBHandler buildFetchBulkQuestionsHandler(ProcessorContext context) {
+        return new FetchBulkQuestionsHandler(context);
     }
 }

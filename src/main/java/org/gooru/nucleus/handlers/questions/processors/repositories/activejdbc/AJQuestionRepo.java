@@ -38,4 +38,14 @@ public class AJQuestionRepo implements QuestionRepo {
     public MessageResponse deleteQuestion() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildDeleteQuestionHandler(context));
     }
+
+    @Override
+    public MessageResponse associateRubricWithQuestion() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildAssociateRubricWithQuestionHandler(context));
+    }
+
+    @Override
+    public MessageResponse fetchBulkQuestions() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildFetchBulkQuestionsHandler(context));
+    }
 }
