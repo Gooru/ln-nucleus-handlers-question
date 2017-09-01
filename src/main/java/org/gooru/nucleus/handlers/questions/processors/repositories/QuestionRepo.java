@@ -17,4 +17,6 @@ public interface QuestionRepo {
     MessageResponse associateRubricWithQuestion();
     
     MessageResponse fetchBulkQuestions();
+    
+    MessageResponse updateQuestionScore();
 }

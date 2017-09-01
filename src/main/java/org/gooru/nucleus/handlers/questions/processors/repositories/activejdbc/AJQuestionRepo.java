@@ -48,4 +48,9 @@ public class AJQuestionRepo implements QuestionRepo {
     public MessageResponse fetchBulkQuestions() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildFetchBulkQuestionsHandler(context));
     }
+
+    @Override
+    public MessageResponse updateQuestionScore() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildUpdateQuestionScoreHandler(context));
+    }
 }

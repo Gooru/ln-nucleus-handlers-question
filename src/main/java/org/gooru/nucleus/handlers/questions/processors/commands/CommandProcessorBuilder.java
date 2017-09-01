@@ -88,6 +88,13 @@ public enum CommandProcessorBuilder {
         public Processor build(ProcessorContext context) {
             return new QuestionRubricAssociationProcessor(context);
         }
+    },
+    QUESTION_SCORE_UPDATE(MessageConstants.MSG_OP_QUESTION_SCORE_UPDATE) {
+        @Override
+        public Processor build(ProcessorContext context) {
+            return new QuestionScoreUpdateProcessor(context);
+        }
+        
     };
 
     private String name;
