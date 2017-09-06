@@ -65,7 +65,7 @@ public class AJEntityRubric extends Model {
 
     public static final String FETCH_RUBRIC =
         "SELECT id, title, url, is_remote, description, categories, feedback_guidance, overall_feedback_required,"
-            + " is_rubric, course_id, unit_id, lesson_id, collection_id, content_id, scoring, max_score, increment,"
+            + " is_rubric, course_id, unit_id, lesson_id, collection_id, content_id, scoring, max_score, increment, array_to_json(gut_codes) as gut_codes,"
             + " creator_id, modifier_id, original_creator_id, original_rubric_id, parent_rubric_id, publish_date, publish_status, metadata, taxonomy,"
             + " thumbnail, created_at, updated_at, tenant, tenant_root, visible_on_profile, is_deleted, creator_system FROM rubric"
             + " WHERE id = ?::uuid AND is_deleted = false";
@@ -73,12 +73,12 @@ public class AJEntityRubric extends Model {
     public static final String FETCH_RUBRIC_SUMMARY =
         "SELECT id, title, url, is_remote, description, categories, feedback_guidance, overall_feedback_required, creator_id, modifier_id,"
             + " original_creator_id, original_rubric_id, parent_rubric_id, publish_status, metadata, taxonomy, thumbnail,"
-            + " created_at, updated_at, tenant, visible_on_profile, increment, course_id, unit_id, lesson_id,"
+            + " created_at, updated_at, tenant, visible_on_profile, increment, course_id, unit_id, lesson_id, array_to_json(gut_codes) as gut_codes,"
             + " collection_id, content_id, is_rubric, scoring, max_score, grader FROM rubric WHERE content_id = ?::uuid AND is_deleted = false";
 
     public static final List<String> RUBRIC_SUMMARY =
         Arrays.asList(ID, TITLE, URL, IS_REMOTE, DESCRIPTION, CATEGORIES, FEEDBACK_GUIDANCE, OVERALL_FEEDBACK_REQUIRED,
-            CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, PARENT_RUBRIC_ID, PUBLISH_STATUS,
+            CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, PARENT_RUBRIC_ID, PUBLISH_STATUS, GUT_CODES,
             METADATA, TAXONOMY, THUMBNAIL, CREATED_AT, UPDATED_AT, TENANT, VISIBLE_ON_PROFILE, INCREMENT,
             COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID, CONTENT_ID, IS_RUBRIC, SCORING, MAX_SCORE, GRADER);
 
@@ -117,7 +117,7 @@ public class AJEntityRubric extends Model {
 
     public static final List<String> FETCH_RUBRIC_ON_FIELDS =
         Arrays.asList(ID, TITLE, URL, IS_REMOTE, DESCRIPTION, IS_RUBRIC, GRADER, CATEGORIES, FEEDBACK_GUIDANCE,
-            OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID,
+            OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, GUT_CODES,
             PARENT_RUBRIC_ID, PUBLISH_DATE, PUBLISH_STATUS, METADATA, TAXONOMY, THUMBNAIL, CREATED_AT,
             UPDATED_AT, TENANT, TENANT_ROOT, VISIBLE_ON_PROFILE, IS_DELETED, CREATOR_SYSTEM);
 

@@ -23,6 +23,7 @@ import io.vertx.core.impl.StringEscapeUtils;
  */
 class SimpleJsonFormatter implements JsonFormatter {
     private static final String JSONB_TYPE = "jsonb";
+    private static final String JSON_TYPE = "json";
     private static final int CAPACITY = 2048;
     private final String[] attributes;
     private final boolean pretty;
@@ -97,7 +98,8 @@ class SimpleJsonFormatter implements JsonFormatter {
                 sb.append(v);
             } else if (v instanceof Date) {
                 sb.append('"').append(Convert.toIsoString((Date) v)).append('"');
-            } else if (v instanceof PGobject && ((PGobject) v).getType().equalsIgnoreCase(JSONB_TYPE)) {
+            } else if (v instanceof PGobject && (((PGobject) v).getType().equalsIgnoreCase(JSONB_TYPE)
+                || ((PGobject) v).getType().equalsIgnoreCase(JSON_TYPE))) {
                 sb.append(Convert.toString(v));
             } else if (v instanceof String){
                 sb.append('"');
