@@ -65,21 +65,21 @@ public class AJEntityRubric extends Model {
 
     public static final String FETCH_RUBRIC =
         "SELECT id, title, url, is_remote, description, categories, feedback_guidance, overall_feedback_required,"
-            + " is_rubric, course_id, unit_id, lesson_id, collection_id, content_id, scoring, max_score, increment,"
+            + " is_rubric, course_id, unit_id, lesson_id, collection_id, content_id, scoring, max_score, increment, array_to_json(gut_codes) as gut_codes,"
             + " creator_id, modifier_id, original_creator_id, original_rubric_id, parent_rubric_id, publish_date, publish_status, metadata, taxonomy,"
-            + " gut_codes, thumbnail, created_at, updated_at, tenant, tenant_root, visible_on_profile, is_deleted, creator_system FROM rubric"
+            + " thumbnail, created_at, updated_at, tenant, tenant_root, visible_on_profile, is_deleted, creator_system FROM rubric"
             + " WHERE id = ?::uuid AND is_deleted = false";
 
     public static final String FETCH_RUBRIC_SUMMARY =
         "SELECT id, title, url, is_remote, description, categories, feedback_guidance, overall_feedback_required, creator_id, modifier_id,"
-            + " original_creator_id, original_rubric_id, parent_rubric_id, publish_status, metadata, taxonomy, gut_codes, thumbnail,"
-            + " created_at, updated_at, tenant, visible_on_profile, increment, course_id, unit_id, lesson_id,"
+            + " original_creator_id, original_rubric_id, parent_rubric_id, publish_status, metadata, taxonomy, thumbnail,"
+            + " created_at, updated_at, tenant, visible_on_profile, increment, course_id, unit_id, lesson_id, array_to_json(gut_codes) as gut_codes,"
             + " collection_id, content_id, is_rubric, scoring, max_score, grader FROM rubric WHERE content_id = ?::uuid AND is_deleted = false";
 
     public static final List<String> RUBRIC_SUMMARY =
         Arrays.asList(ID, TITLE, URL, IS_REMOTE, DESCRIPTION, CATEGORIES, FEEDBACK_GUIDANCE, OVERALL_FEEDBACK_REQUIRED,
-            CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, PARENT_RUBRIC_ID, PUBLISH_STATUS,
-            METADATA, TAXONOMY, GUT_CODES, THUMBNAIL, CREATED_AT, UPDATED_AT, TENANT, VISIBLE_ON_PROFILE, INCREMENT,
+            CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, PARENT_RUBRIC_ID, PUBLISH_STATUS, GUT_CODES,
+            METADATA, TAXONOMY, THUMBNAIL, CREATED_AT, UPDATED_AT, TENANT, VISIBLE_ON_PROFILE, INCREMENT,
             COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID, CONTENT_ID, IS_RUBRIC, SCORING, MAX_SCORE, GRADER);
 
     public static final String SELECT_DUPLICATE =
@@ -117,8 +117,8 @@ public class AJEntityRubric extends Model {
 
     public static final List<String> FETCH_RUBRIC_ON_FIELDS =
         Arrays.asList(ID, TITLE, URL, IS_REMOTE, DESCRIPTION, IS_RUBRIC, GRADER, CATEGORIES, FEEDBACK_GUIDANCE,
-            OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID,
-            PARENT_RUBRIC_ID, PUBLISH_DATE, PUBLISH_STATUS, METADATA, TAXONOMY, GUT_CODES, THUMBNAIL, CREATED_AT,
+            OVERALL_FEEDBACK_REQUIRED, CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, GUT_CODES,
+            PARENT_RUBRIC_ID, PUBLISH_DATE, PUBLISH_STATUS, METADATA, TAXONOMY, THUMBNAIL, CREATED_AT,
             UPDATED_AT, TENANT, TENANT_ROOT, VISIBLE_ON_PROFILE, IS_DELETED, CREATOR_SYSTEM);
 
     // Rubric OFF Fields
@@ -127,7 +127,7 @@ public class AJEntityRubric extends Model {
 
     private static final List<String> INSERT_RUBRIC_OFF_ALLOWED_FIELDS =
         Arrays.asList(IS_RUBRIC, OVERALL_FEEDBACK_REQUIRED, FEEDBACK_GUIDANCE, SCORING, MAX_SCORE, INCREMENT, GRADER);
-
+    
     private static final List<String> ASSOCIATE_ALLOWED_FIELDS =
         Arrays.asList(COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID);
 
@@ -140,6 +140,11 @@ public class AJEntityRubric extends Model {
             ORIGINAL_CREATOR_ID, ORIGINAL_RUBRIC_ID, PARENT_RUBRIC_ID, COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID,
             CONTENT_ID, GUT_CODES, PUBLISH_DATE, IS_DELETED, VISIBLE_ON_PROFILE, TENANT, TENANT_ROOT);
 
+    // Scoring fields
+    private static final List<String> SCORING_MANDATORY_FIELDS = Arrays.asList(SCORING);
+    private static final List<String> SCORING_ALLOWED_FIELDS = Arrays.asList(SCORING, MAX_SCORE, INCREMENT);
+    public static final List<String> SCORING_FIELDS = Arrays.asList(ID, SCORING, MAX_SCORE, INCREMENT, IS_RUBRIC);
+    
     private static final Map<String, FieldValidator> validatorRegistry;
     private static final Map<String, FieldConverter> converterRegistry;
 
@@ -250,6 +255,21 @@ public class AJEntityRubric extends Model {
             @Override
             public Set<String> mandatoryFields() {
                 return Collections.unmodifiableSet(new HashSet<String>(INSERT_RUBRIC_OFF_MANDATORY_FIELDS));
+            }
+        };
+    }
+    
+    public static FieldSelector scoringFieldSelector() {
+        return new FieldSelector() {
+
+            @Override
+            public Set<String> allowedFields() {
+                return Collections.unmodifiableSet(new HashSet<>(SCORING_ALLOWED_FIELDS));
+            }
+
+            @Override
+            public Set<String> mandatoryFields() {
+                return Collections.unmodifiableSet(new HashSet<String>(SCORING_MANDATORY_FIELDS));
             }
         };
     }

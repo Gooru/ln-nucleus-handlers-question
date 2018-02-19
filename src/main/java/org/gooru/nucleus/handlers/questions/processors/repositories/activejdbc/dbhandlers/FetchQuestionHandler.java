@@ -1,5 +1,6 @@
 package org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.dbhandlers;
 
+import java.util.List;
 import java.util.ResourceBundle;
 
 import org.gooru.nucleus.handlers.questions.processors.ProcessorContext;
@@ -75,8 +76,14 @@ class FetchQuestionHandler implements DBHandler {
             .buildSimpleJsonFormatter(false, AJEntityQuestion.FETCH_QUESTION_FIELDS).toJson(this.question));
 
         if (this.rubric != null) {
+            List<String> RUBRIC_FIELDS;
+            if (rubric.getBoolean(AJEntityRubric.IS_RUBRIC)) {
+                RUBRIC_FIELDS = AJEntityRubric.RUBRIC_SUMMARY;
+            } else {
+                RUBRIC_FIELDS = AJEntityRubric.SCORING_FIELDS;
+            }
             response.put(AJEntityQuestion.RUBRIC, new JsonObject(JsonFormatterBuilder
-                .buildSimpleJsonFormatter(false, AJEntityRubric.RUBRIC_SUMMARY).toJson(this.rubric)));
+                .buildSimpleJsonFormatter(false, RUBRIC_FIELDS).toJson(this.rubric)));
         } else {
             response.putNull(AJEntityQuestion.RUBRIC);
         }

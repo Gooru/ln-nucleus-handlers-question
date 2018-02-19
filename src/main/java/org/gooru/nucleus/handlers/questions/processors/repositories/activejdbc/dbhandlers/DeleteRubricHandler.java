@@ -70,16 +70,6 @@ public class DeleteRubricHandler implements DBHandler {
                 ExecutionResult.ExecutionStatus.FAILED);
         }
 
-        // If the rubric is copy and associated with question
-        // do not delete
-        if (this.rubric.getString(AJEntityRubric.ORIGINAL_RUBRIC_ID) != null
-            && this.rubric.getString(AJEntityRubric.CONTENT_ID) != null) {
-            LOGGER.debug("rubric '{}' associated with question, delete not allowed", context.rubricId());
-            return new ExecutionResult<>(
-                MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("delete.now.allowed")),
-                ExecutionResult.ExecutionStatus.FAILED);
-        }
-
         return new ExecutionResult<>(null, ExecutionResult.ExecutionStatus.CONTINUE_PROCESSING);
     }
 

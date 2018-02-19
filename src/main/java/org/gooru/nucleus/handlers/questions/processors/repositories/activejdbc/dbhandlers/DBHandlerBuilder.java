@@ -51,4 +51,8 @@ public final class DBHandlerBuilder {
     public static DBHandler buildFetchBulkQuestionsHandler(ProcessorContext context) {
         return new FetchBulkQuestionsHandler(context);
     }
+
+    public static DBHandler buildUpdateQuestionScoreHandler(ProcessorContext context) {
+        return new UpdateQuestionScoreHandler(context);
+    }
 }

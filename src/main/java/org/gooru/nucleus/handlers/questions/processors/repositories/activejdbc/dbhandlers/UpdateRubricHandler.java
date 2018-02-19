@@ -92,12 +92,15 @@ public class UpdateRubricHandler implements DBHandler {
         String url = context.request().getString(AJEntityRubric.URL);
         
         if (isRemote && url != null && !url.isEmpty()) {
-            JsonArray duplicates = checkDuplicate();
-            if (duplicates != null && !duplicates.isEmpty()) {
-                JsonObject response = new JsonObject().put(AJEntityRubric.DUPLICATE_IDS, duplicates);
-                LOGGER.warn("Duplicate rubrics found:{}", duplicates.toString());
-                return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(response),
-                    ExecutionResult.ExecutionStatus.FAILED);
+            boolean isUrlUpdated = checkIfURLUpdated(url, rubric);
+            if (isUrlUpdated) {
+                JsonArray duplicates = checkDuplicate();
+                if (duplicates != null && !duplicates.isEmpty()) {
+                    JsonObject response = new JsonObject().put(AJEntityRubric.DUPLICATE_IDS, duplicates);
+                    LOGGER.warn("Duplicate rubrics found:{}", duplicates.toString());
+                    return new ExecutionResult<>(MessageResponseFactory.createValidationErrorResponse(response),
+                        ExecutionResult.ExecutionStatus.FAILED);
+                }
             }
         }
         
@@ -160,6 +163,11 @@ public class UpdateRubricHandler implements DBHandler {
             });
         }
         return duplicateArray;
+    }
+    
+    private boolean checkIfURLUpdated(String url, AJEntityRubric rubric) {
+        String existingURL = rubric.getString(AJEntityRubric.URL);
+        return !(existingURL != null && !existingURL.isEmpty() && existingURL.equalsIgnoreCase(url));
     }
     
     private boolean authorized() {
