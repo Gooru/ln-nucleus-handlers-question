@@ -81,6 +81,7 @@ class FetchQuestionHandler implements DBHandler {
                 RUBRIC_FIELDS = AJEntityRubric.RUBRIC_SUMMARY;
             } else {
                 RUBRIC_FIELDS = AJEntityRubric.SCORING_FIELDS;
+                response.put(AJEntityRubric.MAX_SCORE, this.rubric.getInteger(AJEntityRubric.MAX_SCORE));
             }
             response.put(AJEntityQuestion.RUBRIC, new JsonObject(JsonFormatterBuilder
                 .buildSimpleJsonFormatter(false, RUBRIC_FIELDS).toJson(this.rubric)));
