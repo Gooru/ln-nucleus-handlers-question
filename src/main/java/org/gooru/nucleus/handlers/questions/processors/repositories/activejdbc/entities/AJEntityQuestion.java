@@ -47,7 +47,9 @@ public class AJEntityQuestion extends Model {
     private static final String TENANT = "tenant";
     private static final String TENANT_ROOT = "tenant_root";
     public static final String RUBRIC = "rubric";
-
+    public static final String PRIMARY_LANGUAGE = "primary_language";
+    public static final String MAX_SCORE = "max_score";
+    
     private static final String PUBLISH_STATUS_PUBLISHED = "published";
     public static final String OPEN_ENDED_QUESTION_SUBFORMAT = "open_ended_question";
 
@@ -77,7 +79,7 @@ public class AJEntityQuestion extends Model {
         "select id, title, publish_date, publish_status, description, answer, metadata, taxonomy, "
             + "hint_explanation_detail, thumbnail, narration, license, creator_id, content_subformat, "
             + "visible_on_profile, course_id, unit_id, lesson_id, collection_id, original_creator_id, "
-            + "original_content_id, tenant, tenant_root from content where content_format = ?::content_format_type "
+            + "original_content_id, tenant, tenant_root, primary_language, max_score from content where content_format = ?::content_format_type "
             + "and id = ?::uuid and is_deleted = ?";
     public static final String AUTH_FILTER = "id = ?::uuid and (owner_id = ?::uuid or collaborator ?? ?);";
     public static final String PUBLISHED_FILTER = "id = ?::uuid and publish_status = 'published'::publish_status_type;";
@@ -86,7 +88,7 @@ public class AJEntityQuestion extends Model {
         "select id, title, publish_date, publish_status, description, answer, metadata, taxonomy, "
             + "hint_explanation_detail, thumbnail, narration, license, creator_id, content_subformat, "
             + "visible_on_profile, course_id, unit_id, lesson_id, collection_id, original_creator_id, "
-            + "original_content_id, tenant, tenant_root from content where content_format = ?::content_format_type "
+            + "original_content_id, tenant, tenant_root, primary_language, max_score from content where content_format = ?::content_format_type "
             + "and id = ANY(?::uuid[]) and is_deleted = ?";
     
     // TABLES
@@ -113,15 +115,15 @@ public class AJEntityQuestion extends Model {
     public static final List<String> FETCH_QUESTION_FIELDS = Arrays
         .asList(ID, TITLE, PUBLISH_DATE, DESCRIPTION, ANSWER, METADATA, TAXONOMY, HINT_EXPLANATION_DETAIL, THUMBNAIL,
             NARRATION, LICENSE, CREATOR_ID, CONTENT_SUBFORMAT, VISIBLE_ON_PROFILE, COURSE_ID, UNIT_ID, LESSON_ID,
-            COLLECTION_ID, ORIGINAL_CONTENT_ID, ORIGINAL_CREATOR_ID);
+            COLLECTION_ID, ORIGINAL_CONTENT_ID, ORIGINAL_CREATOR_ID, PRIMARY_LANGUAGE, MAX_SCORE);
 
     // What fields are allowed in request payload. Note this does not include the auto populate fields
     private static final List<String> INSERT_QUESTION_ALLOWED_FIELDS = Arrays
         .asList(TITLE, DESCRIPTION, CONTENT_SUBFORMAT, ANSWER, METADATA, TAXONOMY, NARRATION, HINT_EXPLANATION_DETAIL,
-            THUMBNAIL, VISIBLE_ON_PROFILE);
+            THUMBNAIL, VISIBLE_ON_PROFILE, PRIMARY_LANGUAGE, MAX_SCORE);
     private static final List<String> UPDATE_QUESTION_ALLOWED_FIELDS = Arrays
         .asList(TITLE, DESCRIPTION, ANSWER, METADATA, TAXONOMY, HINT_EXPLANATION_DETAIL, THUMBNAIL, VISIBLE_ON_PROFILE,
-            NARRATION);
+            NARRATION, PRIMARY_LANGUAGE, MAX_SCORE);
 
     public static final List<String> INSERT_QUESTION_FORBIDDEN_FIELDS = Arrays
         .asList(ID, URL, CREATED_AT, UPDATED_AT, CREATOR_ID, MODIFIER_ID, ORIGINAL_CREATOR_ID, ORIGINAL_CONTENT_ID,
@@ -182,6 +184,8 @@ public class AJEntityQuestion extends Model {
         validatorMap.put(VISIBLE_ON_PROFILE, FieldValidator::validateBooleanIfPresent);
         validatorMap.put(TENANT, (FieldValidator::validateUuid));
         validatorMap.put(TENANT_ROOT, (FieldValidator::validateUuid));
+        validatorMap.put(PRIMARY_LANGUAGE, FieldValidator::validateLanguageIfPresent);
+        validatorMap.put(MAX_SCORE, FieldValidator::validateIntegerIfPresent);
         return Collections.unmodifiableMap(validatorMap);
     }
 
@@ -226,7 +230,7 @@ public class AJEntityQuestion extends Model {
     public void setLicense(Integer code) {
         this.set(LICENSE, code);
     }
-
+    
     public String getTenant() {
         return this.getString(TENANT);
     }
@@ -272,7 +276,7 @@ public class AJEntityQuestion extends Model {
     public String getCollectionId() {
         return this.getString(COLLECTION_ID);
     }
-
+    
     private static class QuestionValidationRegistry implements ValidatorRegistry {
         @Override
         public FieldValidator lookupValidator(String fieldName) {
