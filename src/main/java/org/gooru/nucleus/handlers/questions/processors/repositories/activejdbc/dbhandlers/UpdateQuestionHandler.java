@@ -162,6 +162,7 @@ class UpdateQuestionHandler implements DBHandler {
 
     private void autoPopulate() {
         this.question.setModifierId(this.context.userId());
+        this.question.setDefaultMaxScore();
     }
 
     private static class DefaultPayloadValidator implements PayloadValidator {
