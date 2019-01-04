@@ -231,6 +231,10 @@ public class AJEntityQuestion extends Model {
         this.set(LICENSE, code);
     }
     
+    public void setDefaultMaxScore() {
+        setFieldUsingConverter(MAX_SCORE, 1);
+    }
+    
     public String getTenant() {
         return this.getString(TENANT);
     }
