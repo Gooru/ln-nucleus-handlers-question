@@ -118,6 +118,7 @@ class CreateQuestionHandler implements DBHandler {
         question.setContentFormatQuestion();
         question.setLicense(LicenseUtil.getDefaultLicenseCode());
         question.setTenant(context.tenant());
+        question.setDefaultMaxScore();
         String tenantRoot = context.tenantRoot();
         if (tenantRoot != null && !tenantRoot.isEmpty()) {
             question.setTenantRoot(tenantRoot);
