@@ -44,7 +44,8 @@ public final class SanityChecker {
     if ((context.userId() == null) || context.userId().isEmpty()
         || context.userId().equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) {
       throw new MessageResponseWrapperException(
-          MessageResponseFactory.createForbiddenResponse(RESOURCE_BUNDLE.getString("anonymous.user")));
+          MessageResponseFactory
+              .createForbiddenResponse(RESOURCE_BUNDLE.getString("anonymous.user")));
     }
 
   }

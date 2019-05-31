@@ -1,21 +1,21 @@
 package org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.transactions.exceptionhandlers;
 
 import java.util.ResourceBundle;
-
 import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.DBException;
 import org.postgresql.util.PSQLException;
+
 /**
  * @author renuka
- * 
  */
 class UTF8EncodingExceptionHandler implements ExceptionHandler {
 
   private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
 
-  private UTF8EncodingExceptionHandler() {}
+  private UTF8EncodingExceptionHandler() {
+  }
 
   public static UTF8EncodingExceptionHandler getInstance() {
     return new UTF8EncodingExceptionHandler();

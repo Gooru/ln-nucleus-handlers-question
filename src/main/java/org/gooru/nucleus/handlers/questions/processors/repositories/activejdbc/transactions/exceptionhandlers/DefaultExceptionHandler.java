@@ -3,13 +3,14 @@ package org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.
 import org.gooru.nucleus.handlers.questions.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
+
 /**
  * @author renuka
- * 
  */
 class DefaultExceptionHandler implements ExceptionHandler {
 
-  private DefaultExceptionHandler() {}
+  private DefaultExceptionHandler() {
+  }
 
   public static DefaultExceptionHandler getInstance() {
     return new DefaultExceptionHandler();
