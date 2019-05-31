@@ -9,15 +9,15 @@ import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.A
  */
 public final class RepoBuilder {
 
-    private RepoBuilder() {
-        throw new AssertionError();
-    }
+  private RepoBuilder() {
+    throw new AssertionError();
+  }
 
-    public static QuestionRepo buildQuestionRepo(ProcessorContext context) {
-        return AJQuestionRepoBuilder.buildQuestionRepo(context);
-    }
-    
-    public static RubricRepo buildRubricRepo(ProcessorContext context) {
-        return AJRubricRepoBuilder.buildRubricRepo(context);
-    }
+  public static QuestionRepo buildQuestionRepo(ProcessorContext context) {
+    return AJQuestionRepoBuilder.buildQuestionRepo(context);
+  }
+
+  public static RubricRepo buildRubricRepo(ProcessorContext context) {
+    return AJRubricRepoBuilder.buildRubricRepo(context);
+  }
 }

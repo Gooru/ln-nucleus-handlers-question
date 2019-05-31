@@ -12,22 +12,22 @@ import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse
  */
 public class QuestionScoreUpdateProcessor extends AbstractCommandProcessor {
 
-    protected QuestionScoreUpdateProcessor(ProcessorContext context) {
-        super(context);
-    }
+  protected QuestionScoreUpdateProcessor(ProcessorContext context) {
+    super(context);
+  }
 
-    @Override
-    protected void setDeprecatedVersions() {
-        // NOOP
-    }
+  @Override
+  protected void setDeprecatedVersions() {
+    // NOOP
+  }
 
-    @Override
-    protected MessageResponse processCommand() {
-        if (isIdInvalid(context)) {
-            return MessageResponseFactory
-                .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.question.id"));
-        }
-        return RepoBuilder.buildQuestionRepo(context).updateQuestionScore();
+  @Override
+  protected MessageResponse processCommand() {
+    if (isIdInvalid(context)) {
+      return MessageResponseFactory
+          .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.question.id"));
     }
+    return RepoBuilder.buildQuestionRepo(context).updateQuestionScore();
+  }
 
 }
