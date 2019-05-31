@@ -87,7 +87,7 @@ public class AJEntityRubric extends Model {
         "SELECT id FROM rubric WHERE lower(url) = ? AND tenant = ?::uuid AND is_deleted = false AND original_rubric_id IS NULL";
 
     public static final String VALIDATE_EXISTS_NOT_DELETED =
-        "SELECT id, url, is_remote, creator_id, original_rubric_id, content_id, is_rubric FROM rubric WHERE id = ?::uuid AND is_deleted = false";
+      "SELECT id, url, is_remote, creator_id, original_rubric_id, content_id, is_rubric, max_score FROM rubric WHERE id = ?::uuid AND is_deleted = false";
 
     public static final String SELECT_EXISTING_RUBRIC_FOR_QUESTION =
         "SELECT id FROM rubric WHERE content_id = ?::uuid AND is_deleted = false";
@@ -99,11 +99,12 @@ public class AJEntityRubric extends Model {
     public static final String COPY_RUBRIC =
         "INSERT INTO rubric(id, title, url, is_remote, description, categories, feedback_guidance, overall_feedback_required,"
             + " creator_id, modifier_id, original_creator_id, original_rubric_id, parent_rubric_id, metadata, taxonomy,"
-            + " gut_codes, thumbnail, created_at, updated_at, tenant, tenant_root, visible_on_profile, is_deleted, creator_system, primary_language) SELECT ?, title,"
+            + " gut_codes, thumbnail, created_at, updated_at, tenant, tenant_root, visible_on_profile, is_deleted, creator_system, max_score, primary_language) "
+            + " SELECT ?, title,"
             + " url, is_remote, description, categories, feedback_guidance, overall_feedback_required, ?::uuid, ?::uuid,"
             + " coalesce(original_creator_id,creator_id) as original_creator_id, coalesce(original_rubric_id,?::uuid) as original_rubric_id, ?::uuid,"
             + " metadata, taxonomy, gut_codes, thumbnail, created_at, updated_at, ?::uuid, ?::uuid, visible_on_profile, is_deleted,"
-            + " creator_system, primary_language FROM rubric WHERE id = ?::uuid AND is_deleted = false";
+            + " creator_system, max_score, primary_language FROM rubric WHERE id = ?::uuid AND is_deleted = false";
 
     // Rubric ON Fields
 
@@ -128,7 +129,7 @@ public class AJEntityRubric extends Model {
 
     private static final List<String> INSERT_RUBRIC_OFF_ALLOWED_FIELDS =
         Arrays.asList(IS_RUBRIC, OVERALL_FEEDBACK_REQUIRED, FEEDBACK_GUIDANCE, SCORING, MAX_SCORE, INCREMENT, GRADER, PRIMARY_LANGUAGE);
-    
+
     private static final List<String> ASSOCIATE_ALLOWED_FIELDS =
         Arrays.asList(COURSE_ID, UNIT_ID, LESSON_ID, COLLECTION_ID);
 
@@ -145,7 +146,7 @@ public class AJEntityRubric extends Model {
     private static final List<String> SCORING_MANDATORY_FIELDS = Arrays.asList(SCORING);
     private static final List<String> SCORING_ALLOWED_FIELDS = Arrays.asList(SCORING, MAX_SCORE, INCREMENT);
     public static final List<String> SCORING_FIELDS = Arrays.asList(ID, SCORING, MAX_SCORE, INCREMENT, IS_RUBRIC);
-    
+
     private static final Map<String, FieldValidator> validatorRegistry;
     private static final Map<String, FieldConverter> converterRegistry;
 
@@ -260,7 +261,7 @@ public class AJEntityRubric extends Model {
             }
         };
     }
-    
+
     public static FieldSelector scoringFieldSelector() {
         return new FieldSelector() {
 
@@ -322,6 +323,10 @@ public class AJEntityRubric extends Model {
 
     public void setContentId(String contentId) {
         setFieldUsingConverter(CONTENT_ID, contentId);
+    }
+
+    public Integer getMaxScore() {
+        return this.getInteger(MAX_SCORE);
     }
 
     private void setFieldUsingConverter(String fieldName, Object fieldValue) {
