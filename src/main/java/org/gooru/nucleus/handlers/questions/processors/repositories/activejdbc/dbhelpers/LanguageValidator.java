@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.gooru.nucleus.handlers.questions.app.components.DataSourceRegistry;
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
@@ -20,7 +19,8 @@ public final class LanguageValidator {
   private static final Logger LOGGER = LoggerFactory.getLogger(LanguageValidator.class);
   private static final String LANG_QUERY = "select id from gooru_language where is_visible = true";
 
-  private LanguageValidator() {}
+  private LanguageValidator() {
+  }
 
   public static boolean isValidLanguage(Integer id) {
     return id != null && languageIds.contains(id);

@@ -11,21 +11,22 @@ import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse
  * @author ashish on 2/1/17.
  */
 class QuestionGetProcessor extends AbstractCommandProcessor {
-    public QuestionGetProcessor(ProcessorContext context) {
-        super(context);
-    }
 
-    @Override
-    protected void setDeprecatedVersions() {
+  public QuestionGetProcessor(ProcessorContext context) {
+    super(context);
+  }
 
-    }
+  @Override
+  protected void setDeprecatedVersions() {
 
-    @Override
-    protected MessageResponse processCommand() {
-        if (isIdInvalid(context)) {
-            return MessageResponseFactory
-                .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.question.id"));
-        }
-        return RepoBuilder.buildQuestionRepo(context).fetchQuestion();
+  }
+
+  @Override
+  protected MessageResponse processCommand() {
+    if (isIdInvalid(context)) {
+      return MessageResponseFactory
+          .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.question.id"));
     }
+    return RepoBuilder.buildQuestionRepo(context).fetchQuestion();
+  }
 }

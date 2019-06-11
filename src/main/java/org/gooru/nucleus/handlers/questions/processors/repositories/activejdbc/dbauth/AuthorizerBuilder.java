@@ -8,11 +8,11 @@ import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.e
  */
 public final class AuthorizerBuilder {
 
-    private AuthorizerBuilder() {
-        throw new AssertionError();
-    }
+  private AuthorizerBuilder() {
+    throw new AssertionError();
+  }
 
-    public static Authorizer<AJEntityQuestion> buildTenantAuthorizer(ProcessorContext context) {
-        return new TenantAuthorizer(context);
-    }
+  public static Authorizer<AJEntityQuestion> buildTenantAuthorizer(ProcessorContext context) {
+    return new TenantAuthorizer(context);
+  }
 }

@@ -8,17 +8,18 @@ import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse
  * @author ashish on 2/1/17.
  */
 class QuestionCreateProcessor extends AbstractCommandProcessor {
-    public QuestionCreateProcessor(ProcessorContext context) {
-        super(context);
-    }
 
-    @Override
-    protected void setDeprecatedVersions() {
+  public QuestionCreateProcessor(ProcessorContext context) {
+    super(context);
+  }
 
-    }
+  @Override
+  protected void setDeprecatedVersions() {
 
-    @Override
-    protected MessageResponse processCommand() {
-        return RepoBuilder.buildQuestionRepo(context).createQuestion();
-    }
+  }
+
+  @Override
+  protected MessageResponse processCommand() {
+    return RepoBuilder.buildQuestionRepo(context).createQuestion();
+  }
 }

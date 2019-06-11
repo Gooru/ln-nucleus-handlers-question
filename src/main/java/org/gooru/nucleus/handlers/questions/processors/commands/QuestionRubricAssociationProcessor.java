@@ -9,32 +9,31 @@ import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponse
 import org.gooru.nucleus.handlers.questions.processors.responses.MessageResponseFactory;
 
 /**
- * @author szgooru
- * Created On: 24-Feb-2017
+ * @author szgooru Created On: 24-Feb-2017
  */
 public class QuestionRubricAssociationProcessor extends AbstractCommandProcessor {
 
-    protected QuestionRubricAssociationProcessor(ProcessorContext context) {
-        super(context);
+  protected QuestionRubricAssociationProcessor(ProcessorContext context) {
+    super(context);
+  }
+
+  @Override
+  protected void setDeprecatedVersions() {
+    //NOOP
+  }
+
+  @Override
+  protected MessageResponse processCommand() {
+    if (isValidRubricId(context)) {
+      return MessageResponseFactory
+          .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.rubric.id"));
     }
 
-    @Override
-    protected void setDeprecatedVersions() {
-        //NOOP
+    if (isIdInvalid(context)) {
+      return MessageResponseFactory
+          .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.question.id"));
     }
-
-    @Override
-    protected MessageResponse processCommand() {
-        if (isValidRubricId(context)) {
-            return MessageResponseFactory
-                .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.rubric.id"));
-        }
-        
-        if (isIdInvalid(context)) {
-            return MessageResponseFactory
-                .createInvalidRequestResponse(RESOURCE_BUNDLE.getString("invalid.question.id"));
-        }
-        return RepoBuilder.buildQuestionRepo(context).associateRubricWithQuestion();
-    }
+    return RepoBuilder.buildQuestionRepo(context).associateRubricWithQuestion();
+  }
 
 }

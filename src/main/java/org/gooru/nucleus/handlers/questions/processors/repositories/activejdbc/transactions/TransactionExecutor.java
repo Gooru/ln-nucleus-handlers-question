@@ -2,7 +2,6 @@ package org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.
 
 import java.sql.SQLException;
 import java.util.List;
-
 import org.gooru.nucleus.handlers.questions.app.components.DataSourceRegistry;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.dbhandlers.DBHandler;
 import org.gooru.nucleus.handlers.questions.processors.repositories.activejdbc.transactions.exceptionhandlers.ExceptionHandler;
@@ -18,67 +17,68 @@ import org.slf4j.LoggerFactory;
  */
 public final class TransactionExecutor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransactionExecutor.class);
-    private static final List<ExceptionHandler> EXCEPTION_HANDLERS = ExceptionHandlerRegistry.getInstance().getHandlers() ;
+  private static final Logger LOGGER = LoggerFactory.getLogger(TransactionExecutor.class);
+  private static final List<ExceptionHandler> EXCEPTION_HANDLERS = ExceptionHandlerRegistry
+      .getInstance().getHandlers();
 
-    private TransactionExecutor() {
-        throw new AssertionError();
+  private TransactionExecutor() {
+    throw new AssertionError();
+  }
+
+  public static MessageResponse executeTransaction(DBHandler handler) {
+    // First validations without any DB
+    ExecutionResult<MessageResponse> executionResult = handler.checkSanity();
+    // Now we need to run with transaction, if we are going to continue
+    if (executionResult.continueProcessing()) {
+      executionResult = executeWithTransaction(handler);
     }
+    return executionResult.result();
 
-    public static MessageResponse executeTransaction(DBHandler handler) {
-        // First validations without any DB
-        ExecutionResult<MessageResponse> executionResult = handler.checkSanity();
-        // Now we need to run with transaction, if we are going to continue
-        if (executionResult.continueProcessing()) {
-            executionResult = executeWithTransaction(handler);
+  }
+
+  private static ExecutionResult<MessageResponse> executeWithTransaction(DBHandler handler) {
+    ExecutionResult<MessageResponse> executionResult;
+
+    try {
+      Base.open(DataSourceRegistry.getInstance().getDefaultDataSource());
+      // If we need a read only transaction, then it is time to set up now
+      if (handler.handlerReadOnly()) {
+        Base.connection().setReadOnly(true);
+      }
+      Base.openTransaction();
+      executionResult = handler.validateRequest();
+      if (executionResult.continueProcessing()) {
+        executionResult = handler.executeRequest();
+        if (executionResult.isSuccessful()) {
+          Base.commitTransaction();
+        } else {
+          Base.rollbackTransaction();
         }
-        return executionResult.result();
-
-    }
-
-    private static ExecutionResult<MessageResponse> executeWithTransaction(DBHandler handler) {
-        ExecutionResult<MessageResponse> executionResult;
-
+      } else {
+        Base.rollbackTransaction();
+      }
+      return executionResult;
+    } catch (Throwable e) {
+      Base.rollbackTransaction();
+      LOGGER.error("Caught exception, need to rollback and abort", e);
+      ExecutionResult<MessageResponse> executionResponse = null;
+      for (ExceptionHandler exceptionHandler : EXCEPTION_HANDLERS) {
+        executionResponse = exceptionHandler.handleError(e);
+        if (executionResponse.result() != null) {
+          break;
+        }
+      }
+      return executionResponse;
+    } finally {
+      if (handler.handlerReadOnly()) {
+        // restore the settings
         try {
-            Base.open(DataSourceRegistry.getInstance().getDefaultDataSource());
-            // If we need a read only transaction, then it is time to set up now
-            if (handler.handlerReadOnly()) {
-                Base.connection().setReadOnly(true);
-            }
-            Base.openTransaction();
-            executionResult = handler.validateRequest();
-            if (executionResult.continueProcessing()) {
-                executionResult = handler.executeRequest();
-                if (executionResult.isSuccessful()) {
-                    Base.commitTransaction();
-                } else {
-                    Base.rollbackTransaction();
-                }
-            } else {
-                Base.rollbackTransaction();
-            }
-            return executionResult;
-        } catch (Throwable e) {
-            Base.rollbackTransaction();
-            LOGGER.error("Caught exception, need to rollback and abort", e);
-            ExecutionResult<MessageResponse> executionResponse = null;
-            for (ExceptionHandler exceptionHandler : EXCEPTION_HANDLERS) {
-              executionResponse = exceptionHandler.handleError(e);
-              if (executionResponse.result() != null) {
-                break;
-              }
-            }
-            return executionResponse;
-        } finally {
-            if (handler.handlerReadOnly()) {
-                // restore the settings
-                try {
-                    Base.connection().setReadOnly(false);
-                } catch (SQLException e) {
-                    LOGGER.error("Exception while marking connection to be read/write", e);
-                }
-            }
-            Base.close();
+          Base.connection().setReadOnly(false);
+        } catch (SQLException e) {
+          LOGGER.error("Exception while marking connection to be read/write", e);
         }
+      }
+      Base.close();
     }
+  }
 }
